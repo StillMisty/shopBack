@@ -1,11 +1,10 @@
 package top.stillmisty.shopback.repository;
 
 import org.springframework.data.repository.CrudRepository;
-import top.stillmisty.shopback.entity.User;
+import top.stillmisty.shopback.entity.Users;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface UserRepository extends CrudRepository<User, Long> {
-    List<User> findByUserName(String userName);
-    User findByUserNameAndPassword(String userName, String password);
+public interface UserRepository extends CrudRepository<Users, Long> {
+    Optional<Users> findByUserName(String userName);
 }
