@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -26,7 +27,7 @@ public class JwtUtils {
         this.secret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public String createToken(Long id) {
+    public String createToken(UUID id) {
         long now = System.currentTimeMillis();
 
         return Jwts.builder()
@@ -37,7 +38,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Long parseJwt(String jwt) {
+    public UUID parseJwt(String jwt) {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(this.secret)
@@ -50,13 +51,24 @@ public class JwtUtils {
                 throw new JwtException("JWT已过期");
             }
 
-            return Long.parseLong(claims.getId());
+            String id = claims.getId();
+            if (id == null || id.isEmpty()) {
+                logger.error("JWT中缺少ID信息");
+                throw new JwtException("JWT中缺少ID信息");
+            }
 
+            return UUID.fromString(id);
         } catch (JwtException e) {
+            // 保留原始异常作为原因
             logger.error("JWT验证失败: {}", e.getMessage());
             throw e;
+        } catch (IllegalArgumentException e) {
+            // 专门处理UUID格式异常
+            logger.error("JWT中的ID格式无效: {}", e.getMessage());
+            throw new JwtException("JWT中的ID格式无效", e);
         } catch (Exception e) {
-            logger.error("JWT解析失败: {}", e.getMessage(), e);
+            // 捕获所有其他可能的异常
+            logger.error("JWT解析失败: {}", e.getMessage());
             throw new JwtException("无效的JWT令牌", e);
         }
     }

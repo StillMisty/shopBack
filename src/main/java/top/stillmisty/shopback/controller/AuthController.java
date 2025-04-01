@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import top.stillmisty.shopback.dto.ApiResponse;
 import top.stillmisty.shopback.dto.LoginRequest;
 import top.stillmisty.shopback.dto.LoginResponse;
 import top.stillmisty.shopback.service.AuthService;
@@ -20,14 +21,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
         String jwt = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
-        return ResponseEntity.ok(new LoginResponse(jwt));
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(new LoginResponse(jwt)));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<LoginResponse> register(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@RequestBody LoginRequest loginRequest) {
         String jwt = authService.register(loginRequest.getUsername(), loginRequest.getPassword());
-        return ResponseEntity.ok(new LoginResponse(jwt));
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(new LoginResponse(jwt)));
     }
 }

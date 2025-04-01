@@ -1,16 +1,22 @@
 package top.stillmisty.shopback.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
+@Table(name = "users")
 @Data
+@AllArgsConstructor
 public class Users {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @GeneratedValue
+    private UUID userId;
 
     @Column(nullable = false, unique = true)
     private String userName;
@@ -18,8 +24,9 @@ public class Users {
     @Column(nullable = false)
     private String password;
 
-    private String email;
-    private String phone;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal wallet;
+
     private String avatar;
 
     @Column(nullable = false)
@@ -33,9 +40,11 @@ public class Users {
         this.userName = userName;
         this.password = password;
         this.registerTime = LocalDateTime.now();
+        this.userStatus = 1; // 默认状态为1
+        this.wallet = BigDecimal.ZERO; // 默认钱包余额为0
     }
 
     public Users() {
-
+        this.registerTime = LocalDateTime.now();
     }
 }
