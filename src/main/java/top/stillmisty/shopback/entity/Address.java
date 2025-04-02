@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
+@Table(name = "addresses")
 @Data
 public class Address {
     @Id
@@ -11,7 +12,7 @@ public class Address {
     private Long addressId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @JoinColumn(name = "user_id")
     private Users user;
 
     private String address;
