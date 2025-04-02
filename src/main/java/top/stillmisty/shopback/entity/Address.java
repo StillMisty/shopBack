@@ -11,7 +11,7 @@ public class Address {
     private Long addressId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
 
     private String address;
