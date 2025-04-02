@@ -1,5 +1,7 @@
 package top.stillmisty.shopback.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
+@Tag(name = "用户信息", description = "用户信息修改相关接口")
 public class UserController {
 
     private final UserService userService;
@@ -24,6 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/info")
+    @Operation(summary = "获取用户信息")
     public ResponseEntity<ApiResponse<Users>> getUserInfo() {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
@@ -32,10 +36,11 @@ public class UserController {
     }
 
     @PostMapping("/password")
+    @Operation(summary = "修改密码")
     public ResponseEntity<ApiResponse<Users>> changePassword(@RequestBody PasswordChangeRequest password) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
-        if (userService.changePassword(userId, password.getPassword())) {
+        if (userService.changePassword(userId, password.password())) {
             // 密码修改成功，返回用户信息
             return ResponseEntity.ok(ApiResponse.success(userService.info(userId)));
         } else {
@@ -46,6 +51,7 @@ public class UserController {
     }
 
     @PostMapping("/avatar")
+    @Operation(summary = "修改头像")
     public ResponseEntity<ApiResponse<Users>> changeAvatar(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest()

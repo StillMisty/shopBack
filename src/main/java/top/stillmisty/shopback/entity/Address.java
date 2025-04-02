@@ -17,4 +17,15 @@ public class Address {
     private String address;
     private String name;
     private String phone;
+
+    public Address(String name, String address, String phone, Users user) {
+        this.address = address;
+        this.name = name;
+        this.phone = phone;
+        this.user = user;
+    }
+
+    public Address() {
+
+    }
 }
