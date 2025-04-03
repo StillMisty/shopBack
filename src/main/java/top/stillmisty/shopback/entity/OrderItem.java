@@ -36,7 +36,8 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Product product, Integer quantity, BigDecimal unitPrice, BigDecimal unitDiscount) {
+    public OrderItem(Order order, Product product, Integer quantity, BigDecimal unitPrice, BigDecimal unitDiscount) {
+        this.order = order;
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;

@@ -1,7 +1,7 @@
 package top.stillmisty.shopback.service;
 
 import org.springframework.stereotype.Service;
-import top.stillmisty.shopback.dto.AddressUpdateRequest;
+import top.stillmisty.shopback.dto.AddressChangeRequest;
 import top.stillmisty.shopback.entity.Address;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.repository.AddressRepository;
@@ -25,7 +25,8 @@ public class AddressService {
     }
 
     public Address findByAddressId(Long addressId) {
-        return addressRepository.findByAddressId(addressId);
+        return addressRepository.findByAddressId(addressId)
+                .orElseThrow(() -> new RuntimeException("地址不存在"));
     }
 
     public void deleteByAddressId(Long addressId) {
@@ -57,17 +58,17 @@ public class AddressService {
     }
 
     // 更新地址，根据地址ID和用户ID判断归属
-    public Address updateAddress(AddressUpdateRequest addressUpdateRequest, UUID userId) {
-        Address currentAddress = findByAddressId(addressUpdateRequest.addressId());
+    public Address updateAddress(Long addressId, AddressChangeRequest addressChangeRequest, UUID userId) {
+        Address currentAddress = findByAddressId(addressId);
         if (currentAddress == null) {
             throw new RuntimeException("地址不存在");
         }
         if (!currentAddress.getUser().getUserId().equals(userId)) {
             throw new RuntimeException("没有权限修改该地址");
         }
-        currentAddress.setName(addressUpdateRequest.name());
-        currentAddress.setAddress(addressUpdateRequest.address());
-        currentAddress.setPhone(addressUpdateRequest.phone());
+        currentAddress.setName(addressChangeRequest.name());
+        currentAddress.setAddress(addressChangeRequest.address());
+        currentAddress.setPhone(addressChangeRequest.phone());
         return save(currentAddress);
     }
 }

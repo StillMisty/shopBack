@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import top.stillmisty.shopback.enums.OrderStatus;
@@ -21,6 +22,7 @@ public class Order {
     // 用户 ID
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private Users user;
 
     // 地址

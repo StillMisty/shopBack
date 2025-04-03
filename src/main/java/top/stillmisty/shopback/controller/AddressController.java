@@ -6,9 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import top.stillmisty.shopback.dto.AddressAddRequest;
-import top.stillmisty.shopback.dto.AddressResponse;
-import top.stillmisty.shopback.dto.AddressUpdateRequest;
+import top.stillmisty.shopback.dto.AddressChangeRequest;
 import top.stillmisty.shopback.dto.ApiResponse;
 import top.stillmisty.shopback.entity.Address;
 import top.stillmisty.shopback.service.AddressService;
@@ -29,39 +27,27 @@ public class AddressController {
 
     @GetMapping
     @Operation(summary = "获取地址列表")
-    public ResponseEntity<ApiResponse<List<AddressResponse>>> getAddress() {
+    public ResponseEntity<ApiResponse<List<Address>>> getAddress() {
+
         UUID userId = AuthUtils.getCurrentUserId();
-        List<AddressResponse> addressResponseList = addressService.findByUser_UserId(userId).stream()
-                .map(address -> new AddressResponse(
-                        address.getAddressId(),
-                        address.getName(),
-                        address.getAddress(),
-                        address.getPhone()
-                ))
-                .toList();
-        return ResponseEntity.ok(ApiResponse.success(addressResponseList));
+        List<Address> addressList = addressService.findByUser_UserId(userId);
+        return ResponseEntity.ok(ApiResponse.success(addressList));
     }
 
     @PostMapping
     @Operation(summary = "添加地址")
     @Transactional
-    public ResponseEntity<ApiResponse<AddressResponse>> addAddress(
-            @RequestBody AddressAddRequest addressRequest
+    public ResponseEntity<ApiResponse<Address>> addAddress(
+            @RequestBody AddressChangeRequest addressChangeRequest
     ) {
         UUID userId = AuthUtils.getCurrentUserId();
         Address address = addressService.save(
-                addressRequest.name(),
-                addressRequest.address(),
-                addressRequest.phone(),
+                addressChangeRequest.name(),
+                addressChangeRequest.address(),
+                addressChangeRequest.phone(),
                 userId
         );
-        AddressResponse addressResponse = new AddressResponse(
-                address.getAddressId(),
-                address.getName(),
-                address.getAddress(),
-                address.getPhone()
-        );
-        return ResponseEntity.ok(ApiResponse.success(addressResponse));
+        return ResponseEntity.ok(ApiResponse.success(address));
     }
 
     @DeleteMapping("/{addressId}")
@@ -75,21 +61,19 @@ public class AddressController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @PutMapping
+    @PutMapping("/{addressId}")
     @Operation(summary = "修改地址")
     @Transactional
-    public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(
-            @RequestBody AddressUpdateRequest addressUpdateRequest
+    public ResponseEntity<ApiResponse<Address>> updateAddress(
+            @Parameter(description = "要修改的地址ID")
+            @PathVariable Long addressId,
+            @RequestBody AddressChangeRequest addressChangeRequest
     ) {
         Address updatedAddress = addressService.updateAddress(
-                addressUpdateRequest, AuthUtils.getCurrentUserId()
+                addressId,
+                addressChangeRequest,
+                AuthUtils.getCurrentUserId()
         );
-        AddressResponse addressResponse = new AddressResponse(
-                updatedAddress.getAddressId(),
-                updatedAddress.getName(),
-                updatedAddress.getAddress(),
-                updatedAddress.getPhone()
-        );
-        return ResponseEntity.ok(ApiResponse.success(addressResponse));
+        return ResponseEntity.ok(ApiResponse.success(updatedAddress));
     }
 }
