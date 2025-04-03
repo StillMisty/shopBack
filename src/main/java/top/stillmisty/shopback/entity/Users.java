@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Users {
     private String userName;
 
     @Column(nullable = false)
+    @JsonIgnore  // 忽略密码的序列化
     private String password;
 
     @Column(nullable = false, precision = 19, scale = 2)

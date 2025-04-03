@@ -36,7 +36,8 @@ public class AddressController {
                         address.getAddressId(),
                         address.getName(),
                         address.getAddress(),
-                        address.getPhone()))
+                        address.getPhone()
+                ))
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(addressResponseList));
     }
@@ -44,9 +45,16 @@ public class AddressController {
     @PostMapping
     @Operation(summary = "添加地址")
     @Transactional
-    public ResponseEntity<ApiResponse<AddressResponse>> addAddress(@RequestBody AddressAddRequest addressRequest) {
+    public ResponseEntity<ApiResponse<AddressResponse>> addAddress(
+            @RequestBody AddressAddRequest addressRequest
+    ) {
         UUID userId = AuthUtils.getCurrentUserId();
-        Address address = addressService.save(addressRequest.name(), addressRequest.address(), addressRequest.phone(), userId);
+        Address address = addressService.save(
+                addressRequest.name(),
+                addressRequest.address(),
+                addressRequest.phone(),
+                userId
+        );
         AddressResponse addressResponse = new AddressResponse(
                 address.getAddressId(),
                 address.getName(),
@@ -59,8 +67,10 @@ public class AddressController {
     @DeleteMapping("/{addressId}")
     @Operation(summary = "删除地址")
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> deleteAddress(@Parameter(description = "要删除的地址ID")
-                                                           @PathVariable Long addressId) {
+    public ResponseEntity<ApiResponse<Void>> deleteAddress(
+            @Parameter(description = "要删除的地址ID")
+            @PathVariable Long addressId
+    ) {
         addressService.deleteAddress(addressId, AuthUtils.getCurrentUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -68,8 +78,12 @@ public class AddressController {
     @PutMapping
     @Operation(summary = "修改地址")
     @Transactional
-    public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(@RequestBody AddressUpdateRequest addressUpdateRequest) {
-        Address updatedAddress = addressService.updateAddress(addressUpdateRequest, AuthUtils.getCurrentUserId());
+    public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(
+            @RequestBody AddressUpdateRequest addressUpdateRequest
+    ) {
+        Address updatedAddress = addressService.updateAddress(
+                addressUpdateRequest, AuthUtils.getCurrentUserId()
+        );
         AddressResponse addressResponse = new AddressResponse(
                 updatedAddress.getAddressId(),
                 updatedAddress.getName(),

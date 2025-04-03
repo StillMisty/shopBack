@@ -24,8 +24,11 @@ public class OrderItem {
 
     private Integer quantity;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
+
+    @Column(nullable = false, precision = 3, scale = 2)
+    private BigDecimal unitDiscount;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal subtotal;
@@ -33,11 +36,11 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Order order, Product product, Integer quantity, BigDecimal unitPrice) {
-        this.order = order;
+    public OrderItem(Product product, Integer quantity, BigDecimal unitPrice, BigDecimal unitDiscount) {
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
-        this.subtotal = unitPrice.multiply(new BigDecimal(quantity));
+        this.unitDiscount = unitDiscount;
+        this.subtotal = unitPrice.multiply(new BigDecimal(quantity)).multiply(unitDiscount);
     }
 }

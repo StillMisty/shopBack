@@ -41,18 +41,18 @@ public class Order {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;
 
-    // 添加订单项的便捷方法
-    public void addOrderItem(Product product, Integer quantity) {
-        OrderItem orderItem = new OrderItem(this, product,
-                quantity, new BigDecimal(product.getProductPrice()));
-        orderItems.add(orderItem);
+    // 订单支付时间
+    private LocalDateTime payTime;
+
+    public Order(Users user, String address, String name, String phone) {
+        this.user = user;
+        this.address = address;
+        this.name = name;
+        this.phone = phone;
     }
 
-    // 计算订单总金额
-    public void calculateTotal() {
-        this.totalAmount = orderItems.stream()
-                .map(OrderItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public Order() {
+
     }
 }
 

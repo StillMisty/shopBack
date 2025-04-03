@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,9 +14,11 @@ public class CartItem {
     @GeneratedValue
     private UUID cartItemId;
 
-    @ManyToOne
-    @JoinColumn(name = "cart_id")
-    private Cart cart;
+    // 用户 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private Users user;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -24,9 +27,9 @@ public class CartItem {
     // 商品数量
     private Integer quantity;
 
-    public CartItem(Product product, Cart cart, Integer quantity) {
+    public CartItem(Users user, Product product, Integer quantity) {
+        this.user = user;
         this.product = product;
-        this.cart = cart;
         this.quantity = quantity;
     }
 
