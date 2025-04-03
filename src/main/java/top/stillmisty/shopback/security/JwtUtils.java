@@ -7,7 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,14 +17,13 @@ import java.util.UUID;
 @Component
 public class JwtUtils {
     final private static Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-    final private SecretKey secret;
-    final private long jwtExpirationMs;
 
-    public JwtUtils(Environment environment) {
-        // 从 application.properties 中读取
-        String jwtSecret = environment.getProperty("jwt.secret");
-        this.jwtExpirationMs = 86400000;
-        this.secret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    @Value("${jwt.expirationMs}")
+    final private static int jwtExpirationMs = 86400000; // 1天
+    private static SecretKey secret;
+
+    public JwtUtils(@Value("${jwt.secret}") String jwtSecret) {
+        secret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
     public String createToken(UUID id) {
@@ -34,14 +33,14 @@ public class JwtUtils {
                 .id(id.toString())
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + jwtExpirationMs))
-                .signWith(this.secret)
+                .signWith(secret)
                 .compact();
     }
 
     public UUID parseJwt(String jwt) throws JwtException {
         try {
             Claims claims = Jwts.parser()
-                    .verifyWith(this.secret)
+                    .verifyWith(secret)
                     .build()
                     .parseSignedClaims(jwt)
                     .getPayload();

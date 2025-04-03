@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import top.stillmisty.shopback.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
+@SecurityRequirements
 @Tag(name = "认证", description = "用户登录注册相关接口")
 public class AuthController {
 

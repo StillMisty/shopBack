@@ -33,6 +33,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        // 获取当前请求路径
+        String path = request.getServletPath();
+
+        // 如果是认证和 Swagger 相关路径，直接放行，不执行JWT验证
+        if (path.startsWith("/api/auth/") ||
+                path.startsWith("/v3/api-docs/") ||
+                path.startsWith("/swagger-ui/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             // 获取JWT令牌
