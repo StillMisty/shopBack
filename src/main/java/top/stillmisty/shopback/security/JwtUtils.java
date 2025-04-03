@@ -38,19 +38,20 @@ public class JwtUtils {
                 .compact();
     }
 
-    public UUID parseJwt(String jwt) {
+    public UUID parseJwt(String jwt) throws JwtException {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(this.secret)
                     .build()
                     .parseSignedClaims(jwt)
                     .getPayload();
+
             // 判断JWT是否过期
             if (claims.getExpiration().before(new Date())) {
                 logger.error("JWT已过期");
                 throw new JwtException("JWT已过期");
             }
-
+            // 获取用户ID
             String id = claims.getId();
             if (id == null || id.isEmpty()) {
                 logger.error("JWT中缺少ID信息");
@@ -58,17 +59,7 @@ public class JwtUtils {
             }
 
             return UUID.fromString(id);
-        } catch (JwtException e) {
-            // 保留原始异常作为原因
-            logger.error("JWT验证失败: {}", e.getMessage());
-            throw e;
-        } catch (IllegalArgumentException e) {
-            // 专门处理UUID格式异常
-            logger.error("JWT中的ID格式无效: {}", e.getMessage());
-            throw new JwtException("JWT中的ID格式无效", e);
         } catch (Exception e) {
-            // 捕获所有其他可能的异常
-            logger.error("JWT解析失败: {}", e.getMessage());
             throw new JwtException("无效的JWT令牌", e);
         }
     }
