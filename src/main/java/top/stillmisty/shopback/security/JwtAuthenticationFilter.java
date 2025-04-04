@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.repository.UserRepository;
 
 import java.io.IOException;
@@ -31,6 +32,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    private static Authentication getAuthentication(Users user) {
+        List<SimpleGrantedAuthority> authorities;
+        if (user.isAdmin()) {
+            authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_USER"),
+                    new SimpleGrantedAuthority("ROLE_ADMIN")
+            );
+        } else {
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        CustomUserDetails userDetails = new CustomUserDetails(
+                user.getUserId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.isAdmin()
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                authorities
+        );
+        return authentication;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 获取当前请求路径
@@ -40,8 +66,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/auth/")
                 || path.startsWith("/v3/api-docs/")
                 || path.startsWith("/swagger-ui/")
-                || path.startsWith("/api/carousel")
+                || path.startsWith("/api/carousel/")
                 || path.startsWith("/api/product/")
+                || path.startsWith("/public/")
         ) {
             filterChain.doFilter(request, response);
             return;
@@ -55,25 +82,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 获取用户信息
                 UUID userId = jwtUtils.parseJwt(jwt);
 
-                boolean isAdmin = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("用户不存在"))
-                        .isAdmin();
-                log.info("JWT认证通过, 用户ID: {}, 是否为管理员{}", userId, isAdmin);
-                List<SimpleGrantedAuthority> authorities;
-                if (isAdmin) {
-                    authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_USER"),
-                            new SimpleGrantedAuthority("ROLE_ADMIN")
-                    );
-                } else {
-                    authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-                }
-
-                Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        userRepository.findById(userId).orElseThrow(),
-                        null,
-                        authorities
-                );
+                Users user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("用户不存在"));
+                log.info("JWT认证通过, 用户ID: {}, 是否为管理员{}", userId, user.isAdmin());
+                Authentication authentication = getAuthentication(user);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {

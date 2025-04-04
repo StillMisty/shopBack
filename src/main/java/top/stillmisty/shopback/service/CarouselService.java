@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.service;
 
+import cn.hutool.core.util.IdUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.dto.CarouselCreateRequest;
 import top.stillmisty.shopback.entity.Carousel;
 import top.stillmisty.shopback.repository.CarouselRepository;
+import top.stillmisty.shopback.utils.PictureUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,14 +22,22 @@ public class CarouselService {
 
     private final CarouselRepository carouselRepository;
 
-    @Value("${file.upload-dir:/uploads}")
-    private String uploadDir;
 
-    @Value("${app.base-url:http://localhost:8080}")
+    private final Path carouselPath;
+
+    @Value("${app.base-url}")
     private String baseUrl;
 
-    public CarouselService(CarouselRepository carouselRepository) {
+    public CarouselService(CarouselRepository carouselRepository, @Value("${file.upload-dir}") String uploadDir) {
         this.carouselRepository = carouselRepository;
+        this.carouselPath = Paths.get(uploadDir + "/carousels");
+        try {
+            if (!Files.exists(carouselPath)) {
+                Files.createDirectories(carouselPath);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("无法创建轮播图目录", e);
+        }
     }
 
     public List<Carousel> getHomeCarousels() {
@@ -96,21 +106,23 @@ public class CarouselService {
 
     private String uploadImage(MultipartFile file) {
         try {
-            // 确保上传目录存在
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
+            if (file.isEmpty()) {
+                throw new RuntimeException("文件不能为空");
+            }
+
+            if (PictureUtils.isValidPicture(file)) {
+                throw new RuntimeException("文件类型不合法");
             }
 
             // 生成唯一文件名
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(filename);
+            String filename = IdUtil.simpleUUID() + PictureUtils.getFileExtension(file);
+            Path filePath = carouselPath.resolve(filename);
 
             // 保存文件
             Files.copy(file.getInputStream(), filePath);
 
             // 返回可访问的URL
-            return baseUrl + "/uploads/" + filename;
+            return baseUrl + "/public/carousels/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("无法保存上传的图片", e);
         }

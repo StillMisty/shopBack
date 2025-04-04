@@ -3,6 +3,7 @@ package top.stillmisty.shopback.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,7 +58,7 @@ public class UserController {
     @PutMapping("/nickname")
     @Operation(summary = "修改昵称")
     public ResponseEntity<ApiResponse<Users>> changeNickname(
-            @RequestParam NicknameChangeRequest nicknameChangeRequest
+            @Valid @RequestBody NicknameChangeRequest nicknameChangeRequest
     ) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
@@ -72,22 +73,12 @@ public class UserController {
     }
 
 
-    @PutMapping("/avatar")
+    @PostMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "修改头像")
-    public ResponseEntity<ApiResponse<Users>> changeAvatar(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("文件不能为空"));
-        }
-
-        // 验证文件类型和大小
-        if (!userService.isValidAvatar(file)) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("不支持的文件类型"));
-        }
-
+    public ResponseEntity<ApiResponse<Users>> changeAvatar(
+            @RequestParam("file") MultipartFile file
+    ) {
         UUID userId = AuthUtils.getCurrentUserId();
-
         // 调用服务层方法处理文件上传
         try {
             if (userService.changeAvatar(userId, file)) {

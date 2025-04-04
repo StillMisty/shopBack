@@ -5,8 +5,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class CustomUserDetails implements UserDetails {
@@ -15,11 +16,8 @@ public class CustomUserDetails implements UserDetails {
     private final UUID id;
     private final String username;
     private final String password;
+    @Getter
     private final boolean isAdmin;
-
-    public CustomUserDetails(UUID id, String username, String password) {
-        this(id, username, password, false);
-    }
 
     public CustomUserDetails(UUID id, String username, String password, boolean isAdmin) {
         this.id = id;
@@ -30,9 +28,14 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return isAdmin ?
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")) :
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (isAdmin) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
+
+        return authorities;
     }
 
     @Override
@@ -63,9 +66,5 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    public boolean isAdmin() {
-        return isAdmin;
     }
 }

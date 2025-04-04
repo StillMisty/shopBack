@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import top.stillmisty.shopback.repository.UserRepository;
+import top.stillmisty.shopback.security.CustomUserDetails;
 import top.stillmisty.shopback.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -40,8 +40,9 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/api/carousel",
-                                "/api/product/**"
+                                "/api/carousel/**",
+                                "/api/product/**",
+                                "/public/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -62,17 +63,12 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> userRepository.findByUsername(username)
-                .map(user -> {
-                    String[] roles = {"USER"};
-                    if (user.isAdmin()) {
-                        roles = new String[]{"USER", "ADMIN"};
-                    }
-                    return User.builder()
-                            .username(user.getUsername())
-                            .password(user.getPassword())
-                            .roles(roles)
-                            .build();
-                })
+                .map(user -> new CustomUserDetails(
+                        user.getUserId(),
+                        user.getUsername(),
+                        user.getPassword(),
+                        user.isAdmin()
+                ))
                 .orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
     }
 }

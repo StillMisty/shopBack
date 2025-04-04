@@ -1,6 +1,8 @@
 package top.stillmisty.shopback.controller.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,15 @@ public class AdminCarouselController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "添加轮播图")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                    encoding = {
+                            @Encoding(name = "image", contentType = "image/png, image/jpeg"),
+                            @Encoding(name = "data", contentType = "application/json")
+                    }
+            )
+    )
     public ResponseEntity<ApiResponse<Carousel>> addCarousel(
             @RequestPart("image") MultipartFile imageFile,
             @RequestPart("data") CarouselCreateRequest request
@@ -44,8 +55,18 @@ public class AdminCarouselController {
         return ResponseEntity.ok(ApiResponse.success(savedCarousel));
     }
 
+
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "更新轮播图")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                    encoding = {
+                            @Encoding(name = "image", contentType = "image/png, image/jpeg"),
+                            @Encoding(name = "data", contentType = "application/json")
+                    }
+            )
+    )
     public ResponseEntity<ApiResponse<Carousel>> updateCarousel(
             @PathVariable UUID id,
             @RequestPart(value = "image", required = false) MultipartFile imageFile,

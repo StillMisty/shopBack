@@ -1,11 +1,12 @@
 package top.stillmisty.shopback.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.repository.UserRepository;
+import top.stillmisty.shopback.utils.PictureUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,8 +18,21 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    private final Path avatarPath;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    public UserService(UserRepository userRepository, @Value("${file.upload-dir}") String uploadDir) {
         this.userRepository = userRepository;
+        this.avatarPath = Paths.get(uploadDir + "/avatars");
+        try {
+            if (!Files.exists(avatarPath)) {
+                Files.createDirectories(avatarPath);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("无法创建头像目录", e);
+        }
     }
 
     public Users info(UUID userId) {
@@ -40,46 +54,24 @@ public class UserService {
         return true;
     }
 
-    public boolean isValidAvatar(MultipartFile file) {
-        String contentType = file.getContentType();
-        return contentType != null && (contentType.startsWith("image/"));
-    }
-
     public boolean changeAvatar(UUID userId, MultipartFile avatarFile) throws IOException {
-        // 确保上传目录存在
-        String uploadDir = "src/main/resources/static/avatars/";
-        File dir = new File(uploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        if (avatarFile.isEmpty()) {
+            throw new RuntimeException("文件不能为空");
         }
 
-        // 获取文件后缀
-        String originalFilename = avatarFile.getOriginalFilename();
-        String extension = null;
-        if (originalFilename != null) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        if (!PictureUtils.isValidPicture(avatarFile)) {
+            throw new RuntimeException("文件类型不合法");
         }
 
         // 生成新的文件名
-        String filename = userId + extension;
+        String filename = userId + PictureUtils.getFileExtension(avatarFile);
 
         // 保存文件
-        Path path = Paths.get(uploadDir + filename);
+        Path path = Paths.get(avatarPath + "/" + filename);
         Files.copy(avatarFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
         // 更新用户头像URL
-        String avatarUrl = "/avatars/" + filename;
-
-        // 由于可能的文件后缀不同，删除旧头像文件
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        String oldAvatarUrl = user.getAvatar();
-        if (oldAvatarUrl != null && !oldAvatarUrl.equals(avatarUrl)) {
-            File oldAvatarFile = new File("src/main/resources/static" + oldAvatarUrl);
-            if (oldAvatarFile.exists()) {
-                oldAvatarFile.delete();
-            }
-        }
+        String avatarUrl = baseUrl + "/public/avatars/" + filename;
 
         if (userRepository.updateAvatar(userId, avatarUrl) > 0) {
             return true;
