@@ -10,21 +10,29 @@ import java.util.Collections;
 import java.util.UUID;
 
 public class CustomUserDetails implements UserDetails {
-    
+
     @Getter
-    private final UUID userId;
+    private final UUID id;
     private final String username;
     private final String password;
+    private final boolean isAdmin;
 
-    public CustomUserDetails(UUID userId, String username, String password) {
-        this.userId = userId;
+    public CustomUserDetails(UUID id, String username, String password) {
+        this(id, username, password, false);
+    }
+
+    public CustomUserDetails(UUID id, String username, String password, boolean isAdmin) {
+        this.id = id;
         this.username = username;
         this.password = password;
+        this.isAdmin = isAdmin;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("USER"));
+        return isAdmin ?
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")) :
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
@@ -55,5 +63,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
     }
 }

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends CrudRepository<Users, UUID> {
-    Optional<Users> findByUserName(String userName);
+    Optional<Users> findByUsername(String userName);
 
     @Modifying
     @Transactional

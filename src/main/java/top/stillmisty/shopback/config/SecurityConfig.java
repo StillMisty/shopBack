@@ -53,9 +53,9 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> userRepository.findByUserName(username)
+        return username -> userRepository.findByUsername(username)
                 .map(user -> User.builder()
-                        .username(user.getUserName())
+                        .username(user.getUsername())
                         .password(user.getPassword())
                         .roles("USER")
                         .build())

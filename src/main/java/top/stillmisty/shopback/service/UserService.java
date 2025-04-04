@@ -33,6 +33,13 @@ public class UserService {
         return true;
     }
 
+    public boolean changeNickname(UUID userId, String nickname) {
+        Users existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        existingUser.setNickname(nickname);
+        return true;
+    }
+
     public boolean isValidAvatar(MultipartFile file) {
         String contentType = file.getContentType();
         return contentType != null && (contentType.startsWith("image/"));

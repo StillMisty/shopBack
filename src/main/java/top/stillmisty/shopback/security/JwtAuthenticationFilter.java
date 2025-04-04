@@ -12,7 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import top.stillmisty.shopback.entity.Admin;
 import top.stillmisty.shopback.entity.Users;
+import top.stillmisty.shopback.repository.AdminRepository;
 import top.stillmisty.shopback.repository.UserRepository;
 
 import java.io.IOException;
@@ -24,10 +26,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserRepository userRepository, AdminRepository adminRepository) {
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -50,15 +54,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 验证令牌，没有令牌则不进行验证，其也不会被设置身份
             if (StringUtils.hasText(jwt)) {
                 // 获取用户信息
-                UUID userId = jwtUtils.parseJwt(jwt);
-                // 创建认证对象
-                Users user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("用户不存在"));
-                CustomUserDetails userDetails = new CustomUserDetails(userId, user.getUserName(), user.getPassword());
-                Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+                JwtUtils.TokenClaims claims = jwtUtils.parseJwt(jwt);
+                UUID userId = claims.userId();
+                boolean isAdmin = claims.isAdmin();
+                log.info("JWT认证通过, 用户ID: {}, 是否管理员: {}", userId, isAdmin);
+
+                Authentication authentication;
+                if (isAdmin) {
+                    Admin admin = adminRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("管理员不存在"));
+                    CustomUserDetails userDetails = new CustomUserDetails(
+                            userId, admin.getUsername(),
+                            admin.getPassword(), true
+                    );
+                    authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    log.debug("为管理员ID: {} 设置安全上下文", userId);
+                } else {
+                    Users user = userRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("用户不存在"));
+                    CustomUserDetails userDetails = new CustomUserDetails(
+                            userId, user.getUsername(),
+                            user.getPassword(), false
+                    );
+                    authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    log.debug("为用户ID: {} 设置安全上下文", userId);
+                }
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("为用户ID: {} 设置安全上下文", userId);
             }
         } catch (Exception e) {
             SecurityContextHolder.clearContext();

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.dto.ApiResponse;
+import top.stillmisty.shopback.dto.NicknameChangeRequest;
 import top.stillmisty.shopback.dto.PasswordChangeRequest;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.service.UserService;
@@ -35,7 +36,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
-    @PostMapping("/password")
+    @PutMapping("/password")
     @Operation(summary = "修改密码")
     public ResponseEntity<ApiResponse<Users>> changePassword(@RequestBody PasswordChangeRequest password) {
         // 从安全上下文中获取当前用户ID
@@ -50,7 +51,25 @@ public class UserController {
         }
     }
 
-    @PostMapping("/avatar")
+    @PutMapping("/nickname")
+    @Operation(summary = "修改昵称")
+    public ResponseEntity<ApiResponse<Users>> changeNickname(
+            @RequestParam NicknameChangeRequest nicknameChangeRequest
+    ) {
+        // 从安全上下文中获取当前用户ID
+        UUID userId = AuthUtils.getCurrentUserId();
+        if (userService.changeNickname(userId, nicknameChangeRequest.nickname())) {
+            // 昵称修改成功，返回用户信息
+            return ResponseEntity.ok(ApiResponse.success(userService.info(userId)));
+        } else {
+            // 昵称修改失败，返回错误信息
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("昵称修改失败"));
+        }
+    }
+
+
+    @PutMapping("/avatar")
     @Operation(summary = "修改头像")
     public ResponseEntity<ApiResponse<Users>> changeAvatar(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

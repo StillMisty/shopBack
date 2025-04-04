@@ -19,8 +19,8 @@ public class Users {
     @GeneratedValue
     private UUID userId;
 
-    @Column(nullable = false, unique = true)
-    private String userName;
+    @Column(nullable = false, unique = true, length = 20)
+    private String username;
 
     @Column(nullable = false)
     @JsonIgnore  // 忽略密码的序列化
@@ -28,6 +28,9 @@ public class Users {
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal wallet;
+
+    @Column(nullable = false, length = 20)
+    private String nickname;
 
     private String avatar;
 
@@ -38,9 +41,10 @@ public class Users {
 
     private Integer userStatus;
 
-    public Users(String userName, String password) {
-        this.userName = userName;
+    public Users(String username, String password) {
+        this.username = username;
         this.password = password;
+        this.nickname = username; // 默认昵称为用户名
         this.registerTime = LocalDateTime.now();
         this.userStatus = 1; // 默认状态为1
         this.wallet = BigDecimal.ZERO; // 默认钱包余额为0
