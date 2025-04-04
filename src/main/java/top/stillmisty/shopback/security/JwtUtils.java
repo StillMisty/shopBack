@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -27,22 +26,18 @@ public class JwtUtils {
         secret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public String createToken(UUID id, boolean isAdmin) {
+    public String createToken(UUID id) {
         long now = System.currentTimeMillis();
-        Map<String, Boolean> claims = Map.of(
-                "isAdmin", isAdmin
-        );
 
         return Jwts.builder()
                 .id(id.toString())
-                .claims(claims)
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + jwtExpirationMs))
                 .signWith(secret)
                 .compact();
     }
 
-    public TokenClaims parseJwt(String jwt) throws JwtException {
+    public UUID parseJwt(String jwt) throws JwtException {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(secret)
@@ -61,9 +56,8 @@ public class JwtUtils {
                 logger.error("JWT中缺少ID信息");
                 throw new JwtException("JWT中缺少ID信息");
             }
-            boolean isAdmin = claims.get("isAdmin", Boolean.class);
 
-            return new TokenClaims(UUID.fromString(id), isAdmin);
+            return UUID.fromString(id);
         } catch (Exception e) {
             throw new JwtException("无效的JWT令牌", e);
         }

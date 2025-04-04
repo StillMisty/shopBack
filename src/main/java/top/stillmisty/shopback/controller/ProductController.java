@@ -1,7 +1,9 @@
 package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import top.stillmisty.shopback.service.ProductService;
 import java.util.UUID;
 
 @RestController
+@SecurityRequirements
 @RequestMapping("/api/product")
 @Tag(name = "商品信息", description = "商品信息相关接口")
 public class ProductController {
@@ -24,7 +27,9 @@ public class ProductController {
 
     @PostMapping("/list")
     @Operation(summary = "分页获取商品列表")
-    public ResponseEntity<ApiResponse<Page<Product>>> getProducts(@RequestBody ProductPageRequest productPageRequest) {
+    public ResponseEntity<ApiResponse<Page<Product>>> getProducts(
+            @Valid @RequestBody ProductPageRequest productPageRequest
+    ) {
         Page<Product> products = productService.getProducts(productPageRequest.page(), productPageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(products));
     }

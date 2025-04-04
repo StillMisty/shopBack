@@ -2,6 +2,7 @@ package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +39,9 @@ public class UserController {
 
     @PutMapping("/password")
     @Operation(summary = "修改密码")
-    public ResponseEntity<ApiResponse<Users>> changePassword(@RequestBody PasswordChangeRequest password) {
+    public ResponseEntity<ApiResponse<Users>> changePassword(
+            @Valid @RequestBody PasswordChangeRequest password
+    ) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
         if (userService.changePassword(userId, password.password())) {

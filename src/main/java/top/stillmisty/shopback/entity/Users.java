@@ -41,6 +41,9 @@ public class Users {
 
     private Integer userStatus;
 
+    @Column(nullable = false)
+    private boolean isAdmin;
+
     public Users(String username, String password) {
         this.username = username;
         this.password = password;
@@ -48,6 +51,7 @@ public class Users {
         this.registerTime = LocalDateTime.now();
         this.userStatus = 1; // 默认状态为1
         this.wallet = BigDecimal.ZERO; // 默认钱包余额为0
+        this.isAdmin = false; // 默认不是管理员
     }
 
     public Users() {

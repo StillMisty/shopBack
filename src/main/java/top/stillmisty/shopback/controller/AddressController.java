@@ -3,6 +3,7 @@ package top.stillmisty.shopback.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,7 @@ public class AddressController {
     @Operation(summary = "添加地址")
     @Transactional
     public ResponseEntity<ApiResponse<Address>> addAddress(
-            @RequestBody AddressChangeRequest addressChangeRequest
+            @Valid @RequestBody AddressChangeRequest addressChangeRequest
     ) {
         UUID userId = AuthUtils.getCurrentUserId();
         Address address = addressService.save(

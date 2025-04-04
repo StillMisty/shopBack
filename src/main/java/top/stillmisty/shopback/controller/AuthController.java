@@ -3,6 +3,7 @@ package top.stillmisty.shopback.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "用户登录")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String jwt = authService.login(loginRequest.username(), loginRequest.password());
         return ResponseEntity.ok()
                 .body(ApiResponse.success(new LoginResponse(jwt)));
@@ -36,25 +37,17 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "用户注册")
-    public ResponseEntity<ApiResponse<LoginResponse>> register(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody LoginRequest loginRequest) {
         String jwt = authService.register(loginRequest.username(), loginRequest.password());
         return ResponseEntity.ok()
                 .body(ApiResponse.success(new LoginResponse(jwt)));
     }
 
-    @PostMapping("/admin/login")
-    @Operation(summary = "管理员登录")
-    public ResponseEntity<ApiResponse<LoginResponse>> adminLogin(@RequestBody LoginRequest loginRequest) {
-        String jwt = authService.adminLogin(loginRequest.username(), loginRequest.password());
-        return ResponseEntity.ok()
-                .body(ApiResponse.success(new LoginResponse(jwt)));
-    }
-
     @PostMapping("/admin/register")
-    @Operation(summary = "添加管理员")
-    public ResponseEntity<ApiResponse<LoginResponse>> adminRegister(@RequestBody AdminAddRequest adminAddRequest) {
-        String jwt = authService.adminRegister(adminAddRequest);
+    @Operation(summary = "将用户注册为管理员")
+    public ResponseEntity<ApiResponse<Void>> adminRegister(@Valid @RequestBody AdminAddRequest adminAddRequest) {
+        authService.adminRegister(adminAddRequest);
         return ResponseEntity.ok()
-                .body(ApiResponse.success(new LoginResponse(jwt)));
+                .body(ApiResponse.success(null));
     }
 }
