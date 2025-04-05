@@ -55,7 +55,7 @@ public class AdminProductController {
         return ResponseEntity.ok(ApiResponse.success(product));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @Operation(summary = "更新商品信息")
     public ResponseEntity<ApiResponse<Product>> updateProduct(
             @PathVariable UUID id,

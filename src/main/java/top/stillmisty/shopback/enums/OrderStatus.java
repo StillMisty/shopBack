@@ -1,5 +1,8 @@
 package top.stillmisty.shopback.enums;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "订单状态")
 public enum OrderStatus {
     PENDING_PAYMENT("待支付"),
     PAID("已支付"),

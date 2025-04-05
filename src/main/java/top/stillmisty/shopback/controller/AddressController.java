@@ -62,7 +62,7 @@ public class AddressController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @PutMapping("/{addressId}")
+    @PatchMapping("/{addressId}")
     @Operation(summary = "修改地址")
     @Transactional
     public ResponseEntity<ApiResponse<Address>> updateAddress(
