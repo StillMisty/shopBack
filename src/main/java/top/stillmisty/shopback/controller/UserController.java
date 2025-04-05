@@ -7,10 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import top.stillmisty.shopback.dto.ApiResponse;
-import top.stillmisty.shopback.dto.NicknameChangeRequest;
-import top.stillmisty.shopback.dto.PasswordChangeRequest;
-import top.stillmisty.shopback.dto.WalletRechargeRequest;
+import top.stillmisty.shopback.dto.*;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.service.UserService;
 import top.stillmisty.shopback.utils.AuthUtils;
@@ -30,8 +27,23 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/me")
+    @GetMapping("/{userId}")
     @Operation(summary = "获取用户信息")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserInfo(
+            @PathVariable("userId") UUID userId
+    ) {
+        Users user = userService.info(userId);
+        UserResponse userResponse = new UserResponse(
+                user.getUserId(),
+                user.getNickname(),
+                user.getAvatar(),
+                user.getUserStatus()
+        );
+        return ResponseEntity.ok(ApiResponse.success(userResponse));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "获取当前用户信息")
     public ResponseEntity<ApiResponse<Users>> getUserInfo() {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
