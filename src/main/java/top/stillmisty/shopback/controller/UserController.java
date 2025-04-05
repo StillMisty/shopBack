@@ -20,7 +20,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 @Tag(name = "用户信息", description = "用户信息修改相关接口")
 public class UserController {
 
@@ -30,7 +30,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/info")
+    @GetMapping("/me")
     @Operation(summary = "获取用户信息")
     public ResponseEntity<ApiResponse<Users>> getUserInfo() {
         // 从安全上下文中获取当前用户ID
@@ -39,7 +39,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
-    @PutMapping("/password")
+    @PatchMapping("/me/password")
     @Operation(summary = "修改密码")
     public ResponseEntity<ApiResponse<Users>> changePassword(
             @Valid @RequestBody PasswordChangeRequest password
@@ -50,7 +50,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 
-    @PutMapping("/nickname")
+    @PatchMapping("/me/nickname")
     @Operation(summary = "修改昵称")
     public ResponseEntity<ApiResponse<Users>> changeNickname(
             @Valid @RequestBody NicknameChangeRequest nicknameChangeRequest
@@ -62,7 +62,7 @@ public class UserController {
     }
 
 
-    @PostMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(path = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "修改头像")
     public ResponseEntity<ApiResponse<Users>> changeAvatar(
             @RequestParam("image") MultipartFile file
@@ -77,7 +77,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/wallet")
+    @PatchMapping("/me/wallet")
     @Operation(summary = "充值余额")
     public ResponseEntity<ApiResponse<Users>> rechargeWallet(
             @RequestBody WalletRechargeRequest walletRechargeRequest
