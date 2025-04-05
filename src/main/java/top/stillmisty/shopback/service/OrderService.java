@@ -4,10 +4,7 @@ import org.springframework.stereotype.Service;
 import top.stillmisty.shopback.dto.AddressChangeRequest;
 import top.stillmisty.shopback.entity.*;
 import top.stillmisty.shopback.enums.OrderStatus;
-import top.stillmisty.shopback.repository.AddressRepository;
-import top.stillmisty.shopback.repository.CartItemRepository;
-import top.stillmisty.shopback.repository.OrderRepository;
-import top.stillmisty.shopback.repository.UserRepository;
+import top.stillmisty.shopback.repository.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,12 +18,14 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final ProductRepository productRepository;
 
-    public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository, UserRepository userRepository, AddressRepository addressRepository) {
+    public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository, UserRepository userRepository, AddressRepository addressRepository, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
+        this.productRepository = productRepository;
     }
 
     // 计算订单总金额
@@ -73,6 +72,15 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem cartItem : cartItemsByUser) {
             Product product = cartItem.getProduct();
+            // 检查商品是否下架
+            if (product.isProductIsOffShelf()) {
+                throw new RuntimeException("商品已下架");
+            }
+            // 检查库存是否足够
+            if (cartItem.getQuantity() > product.getProductStock()) {
+                throw new RuntimeException("库存不足");
+            }
+            // 创建订单商品
             OrderItem orderItem = new OrderItem(
                     order,
                     product,
@@ -81,6 +89,12 @@ public class OrderService {
                     product.getProductDiscount()
             );
             orderItems.add(orderItem);
+            // 更新商品库存
+            product.setProductStock(product.getProductStock() - cartItem.getQuantity());
+            // 更新商品销量
+            product.setProductSoldCount(product.getProductSoldCount() + cartItem.getQuantity());
+            // 保存商品
+            productRepository.save(product);
         }
         // 清空购物车
         cartItemRepository.deleteAll(cartItemsByUser);

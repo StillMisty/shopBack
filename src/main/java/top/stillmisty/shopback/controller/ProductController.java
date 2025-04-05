@@ -26,11 +26,11 @@ public class ProductController {
     }
 
     @PostMapping("/list")
-    @Operation(summary = "分页获取商品列表")
+    @Operation(summary = "分页获取未下架的商品列表")
     public ResponseEntity<ApiResponse<Page<Product>>> getProducts(
             @Valid @RequestBody ProductPageRequest productPageRequest
     ) {
-        Page<Product> products = productService.getProducts(productPageRequest.page(), productPageRequest.size());
+        Page<Product> products = productService.getProductsOnShelfWithSort(productPageRequest);
         return ResponseEntity.ok(ApiResponse.success(products));
     }
 

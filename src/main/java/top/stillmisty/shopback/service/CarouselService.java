@@ -106,20 +106,8 @@ public class CarouselService {
 
     private String uploadImage(MultipartFile file) {
         try {
-            if (file.isEmpty()) {
-                throw new RuntimeException("文件不能为空");
-            }
 
-            if (PictureUtils.isValidPicture(file)) {
-                throw new RuntimeException("文件类型不合法");
-            }
-
-            // 生成唯一文件名
-            String filename = IdUtil.simpleUUID() + PictureUtils.getFileExtension(file);
-            Path filePath = carouselPath.resolve(filename);
-
-            // 保存文件
-            Files.copy(file.getInputStream(), filePath);
+            String filename = PictureUtils.savePicture(IdUtil.simpleUUID(), file, carouselPath);
 
             // 返回可访问的URL
             return baseUrl + "/public/carousels/" + filename;

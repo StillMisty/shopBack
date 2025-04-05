@@ -39,6 +39,7 @@ public class Users {
 
     private LocalDateTime lastLoginTime;
 
+    @Column(nullable = false)
     private Integer userStatus;
 
     @Column(nullable = false)

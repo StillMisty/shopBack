@@ -76,7 +76,7 @@ public class UserController {
     @PostMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "修改头像")
     public ResponseEntity<ApiResponse<Users>> changeAvatar(
-            @RequestParam("file") MultipartFile file
+            @RequestParam("image") MultipartFile file
     ) {
         UUID userId = AuthUtils.getCurrentUserId();
         // 调用服务层方法处理文件上传

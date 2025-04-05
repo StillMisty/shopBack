@@ -33,8 +33,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        logger.error("参数验证异常: {}", ex.getMessage());
+        StringBuilder errorMsg = new StringBuilder();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            errorMsg.append(error.getDefaultMessage()).append("; ");
+        });
+
+        // 移除最后的分号和空格(如果有)
+        String errorMessage = errorMsg.toString();
+        if (errorMessage.endsWith("; ")) {
+            errorMessage = errorMessage.substring(0, errorMessage.length() - 2);
+        }
+
+        logger.error("参数验证异常: {}", errorMessage);
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error("非法参数"));
+                .body(ApiResponse.error(errorMessage));
     }
 }
