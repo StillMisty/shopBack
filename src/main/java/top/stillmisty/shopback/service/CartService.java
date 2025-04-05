@@ -23,7 +23,12 @@ public class CartService {
         this.userRepository = userRepository;
     }
 
-    // 获取购物车中项目
+    /**
+     * 获取用户购物车中项目
+     *
+     * @param userId 用户ID
+     * @return 购物车
+     */
     public List<CartItem> getCartByUserId(UUID userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
@@ -32,7 +37,14 @@ public class CartService {
 
     }
 
-    // 修改购物车商品数量
+    /**
+     * 添加或更新购物车中的商品数量
+     *
+     * @param userId    用户ID
+     * @param productId 商品ID
+     * @param quantity  数量
+     * @return 更新后的购物车项
+     */
     public CartItem changeCartCount(UUID userId, UUID productId, int quantity) {
         // 先获取产品信息
         Product product = productRepository.findById(productId)
@@ -57,7 +69,11 @@ public class CartService {
         return cartItemRepository.save(cartItem);
     }
 
-    // 清空购物车
+    /**
+     * 清空购物车中的商品
+     *
+     * @param userId 用户ID
+     */
     public void clearCart(UUID userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));

@@ -82,14 +82,4 @@ public class AdminCarouselController {
         carouselService.deleteCarousel(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
-    @PatchMapping("/{id}/status")
-    @Operation(summary = "启用或禁用轮播图")
-    public ResponseEntity<ApiResponse<Carousel>> toggleCarouselStatus(
-            @PathVariable UUID id,
-            @RequestParam boolean enabled
-    ) {
-        Carousel carousel = carouselService.toggleCarouselStatus(id, enabled);
-        return ResponseEntity.ok(ApiResponse.success(carousel));
-    }
 }

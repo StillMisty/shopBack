@@ -31,18 +31,30 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * 用户登录
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @return JWT token
+     */
     public String login(String username, String password) {
         return getJwt(username, password);
     }
 
+    /**
+     * 用户注册
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @return JWT token
+     */
     public String register(String username, String password) {
         String encodedPassword = passwordEncoder.encode(password);
         userRepository.save(new Users(username, encodedPassword));
         return getJwt(username, password);
     }
 
-
-    // 用户登录
     private String getJwt(String username, String password) {
         System.out.println("开始认证...");
         Authentication authentication = authenticationManager.authenticate(
@@ -57,6 +69,9 @@ public class AuthService {
         return jwtUtils.createToken(userId);
     }
 
+    /**
+     * 将用户设置为管理员
+     */
     public void adminRegister(AdminAddRequest adminAddRequest) {
         if (!adminAddRequest.secret().equals(adminSecret)) {
             throw new RuntimeException("管理员密钥错误");

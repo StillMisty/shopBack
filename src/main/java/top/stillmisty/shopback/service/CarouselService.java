@@ -40,18 +40,31 @@ public class CarouselService {
         }
     }
 
+    /**
+     * 获取所有启用的轮播图
+     *
+     * @return 启用的轮播图列表
+     */
     public List<Carousel> getHomeCarousels() {
         return carouselRepository.findByEnabledTrueOrderBySortOrderAsc();
     }
 
+    /**
+     * 获取所有轮播图
+     *
+     * @return 所有轮播图列表
+     */
     public List<Carousel> getAllCarousels() {
         return carouselRepository.findAll();
     }
 
-    public Carousel saveCarousel(Carousel carousel) {
-        return carouselRepository.save(carousel);
-    }
-
+    /**
+     * 创建新的轮播图
+     *
+     * @param imageFile 上传的图片文件
+     * @param request   轮播图创建请求
+     * @return 创建的轮播图
+     */
     public Carousel createCarouselWithImage(MultipartFile imageFile, CarouselCreateRequest request) {
         String imageUrl = uploadImage(imageFile);
 
@@ -65,6 +78,14 @@ public class CarouselService {
         return carouselRepository.save(carousel);
     }
 
+    /**
+     * 更新轮播图
+     *
+     * @param id        轮播图ID
+     * @param imageFile 上传的图片文件
+     * @param request   轮播图更新请求
+     * @return 更新后的轮播图
+     */
     public Carousel updateCarousel(UUID id, MultipartFile imageFile, CarouselCreateRequest request) {
         Carousel existingCarousel = carouselRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("轮播图不存在"));
@@ -92,18 +113,12 @@ public class CarouselService {
         carouselRepository.deleteById(id);
     }
 
-    public Carousel toggleCarouselStatus(UUID id, boolean enabled) {
-        Carousel carousel = carouselRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("轮播图不存在"));
-        carousel.setEnabled(enabled);
-
-        try {
-            return carouselRepository.save(carousel);
-        } catch (ObjectOptimisticLockingFailureException ex) {
-            throw new RuntimeException("数据已被其他用户修改，请刷新后重试", ex);
-        }
-    }
-
+    /**
+     * 上传图片并返回可访问的URL
+     *
+     * @param file 上传的图片文件
+     * @return 可访问的图片URL
+     */
     private String uploadImage(MultipartFile file) {
         try {
 

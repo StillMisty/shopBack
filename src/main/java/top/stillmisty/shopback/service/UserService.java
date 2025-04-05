@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.service;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,6 +9,7 @@ import top.stillmisty.shopback.repository.UserRepository;
 import top.stillmisty.shopback.utils.PictureUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,31 +41,38 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
     }
 
-    public boolean changePassword(UUID userId, String password) {
+    public Users changePassword(UUID userId, String password) {
         Users existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         existingUser.setPassword(password);
-        return true;
+        return userRepository.save(existingUser);
     }
 
-    public boolean changeNickname(UUID userId, String nickname) {
+    public Users changeNickname(UUID userId, String nickname) {
         Users existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         existingUser.setNickname(nickname);
-        return true;
+        return userRepository.save(existingUser);
     }
 
-    public boolean changeAvatar(UUID userId, MultipartFile avatarFile) throws IOException {
+    public Users changeAvatar(UUID userId, MultipartFile avatarFile) throws IOException {
 
         String filename = PictureUtils.savePicture(userId.toString(), avatarFile, avatarPath);
 
         // 更新用户头像URL
         String avatarUrl = baseUrl + "/public/avatars/" + filename;
 
-        if (userRepository.updateAvatar(userId, avatarUrl) > 0) {
-            return true;
-        } else {
-            throw new RuntimeException("头像更新失败");
-        }
+        Users existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        existingUser.setAvatar(avatarUrl);
+        return userRepository.save(existingUser);
+    }
+
+    public Users rechargeWallet(UUID userId, @Min(0) BigDecimal amount) {
+        Users existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        BigDecimal newBalance = existingUser.getWallet().add(amount);
+        existingUser.setWallet(newBalance);
+        return userRepository.save(existingUser);
     }
 }

@@ -33,7 +33,15 @@ public class AddressService {
         addressRepository.deleteByAddressId(addressId);
     }
 
-
+    /**
+     * 新增地址
+     *
+     * @param name    收货人姓名
+     * @param address 收货地址
+     * @param phone   收货人电话
+     * @param userId  用户ID
+     * @return 新增的地址
+     */
     public Address save(String name, String address, String phone, UUID userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
@@ -45,7 +53,13 @@ public class AddressService {
         return addressRepository.save(currentAddress);
     }
 
-    // 删除地址，根据地址ID和用户ID判断归属
+    /**
+     * 删除地址
+     *
+     * @param addressId 地址信息
+     * @param userId    用户ID
+     * @return 新增的地址
+     */
     public void deleteAddress(Long addressId, UUID userId) {
         Address address = findByAddressId(addressId);
         if (address == null) {
@@ -57,7 +71,14 @@ public class AddressService {
         deleteByAddressId(addressId);
     }
 
-    // 更新地址，根据地址ID和用户ID判断归属
+    /**
+     * 更新地址
+     *
+     * @param addressId            地址ID
+     * @param addressChangeRequest 地址信息
+     * @param userId               用户ID
+     * @return 更新的地址
+     */
     public Address updateAddress(Long addressId, AddressChangeRequest addressChangeRequest, UUID userId) {
         Address currentAddress = findByAddressId(addressId);
         if (currentAddress == null) {

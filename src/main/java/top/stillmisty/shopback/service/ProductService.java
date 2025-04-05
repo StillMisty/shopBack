@@ -40,26 +40,47 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    // 根据ID获取商品
-    public Product getProductById(UUID id) {
-        return productRepository.findById(id)
+    /**
+     * 根据商品ID获取商品信息
+     *
+     * @param productId 商品ID
+     * @return 商品列表
+     */
+    public Product getProductById(UUID productId) {
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("商品不存在"));
     }
 
-    // 分页获取商品列表
+    /**
+     * 分页获取所有的商品列表
+     *
+     * @param pageRequest 分页请求参数
+     * @return 商品列表
+     */
     public Page<Product> getProductsWithSort(ProductPageRequest pageRequest) {
         Sort sort = Sort.by(pageRequest.sortDirection(), pageRequest.sortBy());
         Pageable pageable = PageRequest.of(pageRequest.page(), pageRequest.size(), sort);
         return productRepository.findAll(pageable);
     }
 
-    // 分页获取未下架商品列表
+    /**
+     * 分页获取未下架商品列表
+     *
+     * @param pageRequest 分页请求参数
+     * @return 商品列表
+     */
     public Page<Product> getProductsOnShelfWithSort(ProductPageRequest pageRequest) {
         Sort sort = Sort.by(pageRequest.sortDirection(), pageRequest.sortBy());
         Pageable pageable = PageRequest.of(pageRequest.page(), pageRequest.size(), sort);
         return productRepository.findAllByProductIsOffShelf(false, pageable);
     }
 
+    /**
+     * 添加商品
+     *
+     * @param productAddRequest 商品添加请求
+     * @return 商品实体
+     */
     public Product addProduct(ProductAddRequest productAddRequest) {
         Product product = new Product(
                 productAddRequest.productName(),
@@ -73,6 +94,12 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    /**
+     * 删除商品
+     *
+     * @param id 商品ID
+     * @return 删除的商品实体
+     */
     public Product updateProduct(UUID id, ProductChangeRequest productChangeRequest) {
         Product product = getProductById(id);
         product.setProductName(productChangeRequest.productName());
@@ -84,15 +111,18 @@ public class ProductService {
         product.setProductStock(productChangeRequest.productStock());
         product.setProductSoldCount(productChangeRequest.productSoldCount());
         product.setProductOnShelfTime(productChangeRequest.productOnShelfTime());
+        product.setProductIsOffShelf(productChangeRequest.productIsOffShelf());
         return productRepository.save(product);
     }
 
-    public Product offShelfProduct(UUID id) {
-        Product product = getProductById(id);
-        product.setProductIsOffShelf(true);
-        return productRepository.save(product);
-    }
-
+    /**
+     * 更新商品图片
+     *
+     * @param productId    商品ID
+     * @param productImage 商品图片文件
+     * @return 更新后的商品实体
+     * @throws IOException 如果文件处理失败
+     */
     public Product updateProductImage(UUID productId, MultipartFile productImage) throws IOException {
 
         // 生成新的文件名

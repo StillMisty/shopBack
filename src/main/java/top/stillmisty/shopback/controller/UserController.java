@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.dto.ApiResponse;
 import top.stillmisty.shopback.dto.NicknameChangeRequest;
 import top.stillmisty.shopback.dto.PasswordChangeRequest;
+import top.stillmisty.shopback.dto.WalletRechargeRequest;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.service.UserService;
 import top.stillmisty.shopback.utils.AuthUtils;
@@ -45,14 +46,8 @@ public class UserController {
     ) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
-        if (userService.changePassword(userId, password.password())) {
-            // 密码修改成功，返回用户信息
-            return ResponseEntity.ok(ApiResponse.success(userService.info(userId)));
-        } else {
-            // 密码修改失败，返回错误信息
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("密码修改失败"));
-        }
+        Users users = userService.changePassword(userId, password.password());
+        return ResponseEntity.ok(ApiResponse.success(users));
     }
 
     @PutMapping("/nickname")
@@ -62,14 +57,8 @@ public class UserController {
     ) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
-        if (userService.changeNickname(userId, nicknameChangeRequest.nickname())) {
-            // 昵称修改成功，返回用户信息
-            return ResponseEntity.ok(ApiResponse.success(userService.info(userId)));
-        } else {
-            // 昵称修改失败，返回错误信息
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("昵称修改失败"));
-        }
+        Users users = userService.changeNickname(userId, nicknameChangeRequest.nickname());
+        return ResponseEntity.ok(ApiResponse.success(users));
     }
 
 
@@ -81,15 +70,21 @@ public class UserController {
         UUID userId = AuthUtils.getCurrentUserId();
         // 调用服务层方法处理文件上传
         try {
-            if (userService.changeAvatar(userId, file)) {
-                return ResponseEntity.ok(ApiResponse.success(userService.info(userId)));
-            } else {
-                // 头像修改失败，返回错误信息
-                return ResponseEntity.badRequest()
-                        .body(ApiResponse.error("头像修改失败"));
-            }
+            Users users = userService.changeAvatar(userId, file);
+            return ResponseEntity.ok(ApiResponse.success(users));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/wallet")
+    @Operation(summary = "充值余额")
+    public ResponseEntity<ApiResponse<Users>> rechargeWallet(
+            @RequestBody WalletRechargeRequest walletRechargeRequest
+    ) {
+        UUID userId = AuthUtils.getCurrentUserId();
+        // 调用服务层方法处理充值
+        Users users = userService.rechargeWallet(userId, walletRechargeRequest.amount());
+        return ResponseEntity.ok(ApiResponse.success(users));
     }
 }

@@ -74,11 +74,4 @@ public class AdminProductController {
         Product product = productService.updateProductImage(id, image);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "下架商品")
-    public ResponseEntity<ApiResponse<Product>> deleteProduct(@PathVariable UUID id) {
-        Product product = productService.offShelfProduct(id);
-        return ResponseEntity.ok(ApiResponse.success(product));
-    }
 }

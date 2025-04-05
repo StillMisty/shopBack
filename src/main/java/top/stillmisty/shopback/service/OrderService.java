@@ -1,13 +1,19 @@
 package top.stillmisty.shopback.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import top.stillmisty.shopback.dto.AddressChangeRequest;
+import top.stillmisty.shopback.dto.OrderPageRequest;
 import top.stillmisty.shopback.entity.*;
 import top.stillmisty.shopback.enums.OrderStatus;
 import top.stillmisty.shopback.repository.*;
+import top.stillmisty.shopback.utils.AuthUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,8 +34,13 @@ public class OrderService {
         this.productRepository = productRepository;
     }
 
-    // 计算订单总金额
-    public BigDecimal calculateTotal(Order order) {
+    /**
+     * 计算订单总金额
+     *
+     * @param order 订单
+     * @return 订单总金额
+     */
+    private BigDecimal calculateTotal(Order order) {
         BigDecimal total = BigDecimal.ZERO;
         for (OrderItem orderItem : order.getOrderItems()) {
             BigDecimal price = orderItem.getProduct().getProductPrice();
@@ -41,20 +52,34 @@ public class OrderService {
         return total;
     }
 
-    // 更新订单状态
-    public Order updateOrderStatus(UUID orderId, OrderStatus status) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
-        order.setOrderStatus(status);
-        return orderRepository.save(order);
+    /**
+     * 检查订单是否属于当前用户
+     *
+     * @param order 订单
+     */
+    private void assertOrderBelongsToUser(Order order) {
+        UUID userId = AuthUtils.getCurrentUserId();
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("只能操作自己的订单");
+        }
     }
 
-    // 获取订单列表
+    /**
+     * 获取当前用户的所有订单
+     *
+     * @return 订单列表
+     */
     public List<Order> getOrdersByUserId(UUID userId) {
         return orderRepository.findByUser_UserId(userId);
     }
 
-    // 创建订单
+    /**
+     * 创建订单
+     *
+     * @param userId    用户ID
+     * @param addressId 地址ID
+     * @return 创建的订单
+     */
     public Order createOrderFromCart(UUID userId, Long addressId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
@@ -102,21 +127,191 @@ public class OrderService {
         order.setOrderItems(orderItems);
         // 设置订单状态为待支付
         order.setOrderStatus(OrderStatus.PENDING_PAYMENT);
-        order.setOrderTime(LocalDateTime.now());
         BigDecimal total = calculateTotal(order);
         order.setTotalAmount(total);
         return orderRepository.save(order);
     }
 
-    // 更新订单地址
+    /**
+     * 用户取消订单
+     * 订单状态变更为已取消
+     **/
+    public Order cancelOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        // 检查订单是否属于当前用户
+        assertOrderBelongsToUser(order);
+        // 检查订单状态
+        if (order.getOrderStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("只能取消待支付的订单");
+        }
+        // 取消订单时，恢复商品库存
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product product = orderItem.getProduct();
+            product.setProductStock(product.getProductStock() + orderItem.getQuantity());
+            productRepository.save(product);
+        }
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 用户支付订单
+     * 支付成功后，订单状态变更为已支付
+     **/
+    public Order payOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        // 检查订单是否属于当前用户
+        assertOrderBelongsToUser(order);
+        // 检查订单状态
+        if (order.getOrderStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("只能支付待支付的订单");
+        }
+        UUID userId = AuthUtils.getCurrentUserId();
+        if (!order.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("只能支付自己的订单");
+        }
+        Users users = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+
+        // 检查用户余额是否足够
+        if (users.getWallet().compareTo(order.getTotalAmount()) < 0) {
+            throw new RuntimeException("余额不足");
+        }
+        // 扣除用户余额
+        users.setWallet(users.getWallet().subtract(order.getTotalAmount()));
+        userRepository.save(users);
+
+        // 支付成功
+        order.setOrderStatus(OrderStatus.PAID);
+        order.setPayTime(Instant.now());
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 用户确认收货
+     * 订单状态变更为已完成
+     **/
+    public Order confirmOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        // 检查订单是否属于当前用户
+        assertOrderBelongsToUser(order);
+        // 检查订单状态
+        if (order.getOrderStatus() != OrderStatus.SHIPPED) {
+            throw new RuntimeException("只能确认已发货的订单");
+        }
+        order.setOrderStatus(OrderStatus.COMPLETED);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 用户申请退款
+     * 退款申请成功后，订单状态变更为退款中
+     **/
+    public Order refundOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        // 检查订单是否属于当前用户
+        assertOrderBelongsToUser(order);
+        // 检查订单状态
+        if (order.getOrderStatus() != OrderStatus.PAID) {
+            throw new RuntimeException("只能申请已支付的订单退款");
+        }
+        order.setOrderStatus(OrderStatus.REFUNDING);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 用户修改订单地址
+     *
+     * @param orderId              订单ID
+     * @param addressChangeRequest 地址变更请求
+     * @return 更新后的订单
+     */
     public Order updateOrderAddress(UUID orderId, AddressChangeRequest addressChangeRequest) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
-
+        // 检查订单是否属于当前用户
+        assertOrderBelongsToUser(order);
+        // 检查订单状态
         order.setAddress(addressChangeRequest.address());
         order.setName(addressChangeRequest.name());
         order.setPhone(addressChangeRequest.phone());
 
         return orderRepository.save(order);
+    }
+
+    /**
+     * 商家确认退款
+     * 退款成功后，订单状态变更为已退款
+     **/
+    public Order confirmRefund(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        if (order.getOrderStatus() != OrderStatus.REFUNDING) {
+            throw new RuntimeException("只能确认退款中的订单");
+        }
+        // 恢复用户余额
+        Users users = order.getUser();
+        users.setWallet(users.getWallet().add(order.getTotalAmount()));
+        userRepository.save(users);
+        order.setOrderStatus(OrderStatus.REFUNDED);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 商家确认发货
+     * 发货成功后，订单状态变更为已发货
+     **/
+    public Order confirmDelivery(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        if (order.getOrderStatus() != OrderStatus.PROCESSING) {
+            throw new RuntimeException("只能确认处理中的订单发货");
+        }
+        order.setOrderStatus(OrderStatus.SHIPPED);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 商家处理订单
+     * 处理成功后，订单状态变更为处理中
+     **/
+    public Order processOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+        if (order.getOrderStatus() != OrderStatus.PAID) {
+            throw new RuntimeException("只能处理已支付的订单");
+        }
+        order.setOrderStatus(OrderStatus.PROCESSING);
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 商家获取所有订单
+     *
+     * @param orderPageRequest 分页请求参数
+     * @return 分页订单列表
+     */
+    public Page<Order> getOrders(OrderPageRequest orderPageRequest) {
+        Sort sort = Sort.by(orderPageRequest.sortDirection(), orderPageRequest.sortBy());
+        Pageable pageable = PageRequest.of(orderPageRequest.page(), orderPageRequest.size(), sort);
+        return orderRepository.findAll(pageable);
+    }
+
+    /**
+     * 商家获取所有订单
+     *
+     * @param orderStatus      订单状态
+     * @param orderPageRequest 分页请求参数
+     * @return 分页订单列表
+     */
+    public Page<Order> getOrdersByStatus(OrderStatus orderStatus, OrderPageRequest orderPageRequest) {
+        Sort sort = Sort.by(orderPageRequest.sortDirection(), orderPageRequest.sortBy());
+        Pageable pageable = PageRequest.of(orderPageRequest.page(), orderPageRequest.size(), sort);
+        System.out.println("orderStatus = " + orderStatus);
+        return orderRepository.findAllByOrderStatus(orderStatus, pageable);
     }
 }

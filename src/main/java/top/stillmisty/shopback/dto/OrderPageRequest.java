@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Sort;
 
-@Schema(description = "商品分页列表请求")
-public record ProductPageRequest(
+@Schema(description = "订单分页列表请求")
+public record OrderPageRequest(
         @Schema(description = "页码", example = "0")
         @Min(value = 0, message = "页码不能小于0")
         int page,
@@ -16,15 +16,15 @@ public record ProductPageRequest(
         @Max(value = 100, message = "每页大小不能大于100")
         int size,
 
-        @Schema(description = "排序字段", example = "productOnShelfTime")
+        @Schema(description = "排序字段", example = "payTime")
         String sortBy,
 
         @Schema(description = "排序方向", example = "DESC")
         Sort.Direction sortDirection
 ) {
-    public ProductPageRequest {
+    public OrderPageRequest {
         if (sortBy == null) {
-            sortBy = "productOnShelfTime";
+            sortBy = "payTime";
         }
         if (sortDirection == null) {
             sortDirection = Sort.Direction.DESC;
