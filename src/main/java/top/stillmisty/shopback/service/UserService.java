@@ -1,6 +1,5 @@
 package top.stillmisty.shopback.service;
 
-import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,7 +8,6 @@ import top.stillmisty.shopback.repository.UserRepository;
 import top.stillmisty.shopback.utils.PictureUtils;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,14 +63,6 @@ public class UserService {
         Users existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         existingUser.setAvatar(avatarUrl);
-        return userRepository.save(existingUser);
-    }
-
-    public Users rechargeWallet(UUID userId, @Min(0) BigDecimal amount) {
-        Users existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        BigDecimal newBalance = existingUser.getWallet().add(amount);
-        existingUser.setWallet(newBalance);
         return userRepository.save(existingUser);
     }
 }

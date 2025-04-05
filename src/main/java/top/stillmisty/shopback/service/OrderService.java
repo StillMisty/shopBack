@@ -26,12 +26,15 @@ public class OrderService {
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
 
-    public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository, UserRepository userRepository, AddressRepository addressRepository, ProductRepository productRepository) {
+    private final WalletService walletService;
+
+    public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository, UserRepository userRepository, AddressRepository addressRepository, ProductRepository productRepository, WalletService walletService) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.productRepository = productRepository;
+        this.walletService = walletService;
     }
 
     /**
@@ -57,8 +60,7 @@ public class OrderService {
      *
      * @param order 订单
      */
-    private void assertOrderBelongsToUser(Order order) {
-        UUID userId = AuthUtils.getCurrentUserId();
+    private void assertOrderBelongsToUser(Order order, UUID userId) {
         if (!order.getUser().getUserId().equals(userId)) {
             throw new RuntimeException("只能操作自己的订单");
         }
@@ -140,7 +142,8 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
         // 检查订单是否属于当前用户
-        assertOrderBelongsToUser(order);
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
         // 检查订单状态
         if (order.getOrderStatus() != OrderStatus.PENDING_PAYMENT) {
             throw new RuntimeException("只能取消待支付的订单");
@@ -163,25 +166,14 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
         // 检查订单是否属于当前用户
-        assertOrderBelongsToUser(order);
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
         // 检查订单状态
         if (order.getOrderStatus() != OrderStatus.PENDING_PAYMENT) {
             throw new RuntimeException("只能支付待支付的订单");
         }
-        UUID userId = AuthUtils.getCurrentUserId();
-        if (!order.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("只能支付自己的订单");
-        }
-        Users users = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
 
-        // 检查用户余额是否足够
-        if (users.getWallet().compareTo(order.getTotalAmount()) < 0) {
-            throw new RuntimeException("余额不足");
-        }
-        // 扣除用户余额
-        users.setWallet(users.getWallet().subtract(order.getTotalAmount()));
-        userRepository.save(users);
+        walletService.pay(userId, order.getTotalAmount(), orderId);
 
         // 支付成功
         order.setOrderStatus(OrderStatus.PAID);
@@ -197,7 +189,8 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
         // 检查订单是否属于当前用户
-        assertOrderBelongsToUser(order);
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
         // 检查订单状态
         if (order.getOrderStatus() != OrderStatus.SHIPPED) {
             throw new RuntimeException("只能确认已发货的订单");
@@ -214,11 +207,13 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
         // 检查订单是否属于当前用户
-        assertOrderBelongsToUser(order);
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
         // 检查订单状态
         if (order.getOrderStatus() != OrderStatus.PAID) {
             throw new RuntimeException("只能申请已支付的订单退款");
         }
+        // 改为退款中状态
         order.setOrderStatus(OrderStatus.REFUNDING);
         return orderRepository.save(order);
     }
@@ -234,8 +229,16 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
         // 检查订单是否属于当前用户
-        assertOrderBelongsToUser(order);
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
         // 检查订单状态
+        if (!(order.getOrderStatus() == OrderStatus.PENDING_PAYMENT
+                || order.getOrderStatus() == OrderStatus.PAID
+                || order.getOrderStatus() == OrderStatus.PROCESSING)) {
+            throw new RuntimeException("只能修改待支付、已支付或处理中订单的地址");
+        }
+
+        // 修改订单地址
         order.setAddress(addressChangeRequest.address());
         order.setName(addressChangeRequest.name());
         order.setPhone(addressChangeRequest.phone());
@@ -250,13 +253,15 @@ public class OrderService {
     public Order confirmRefund(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("订单不存在"));
+        // 检查订单是否属于当前用户
+        UUID userId = AuthUtils.getCurrentUserId();
+        assertOrderBelongsToUser(order, userId);
+        // 检查订单状态
         if (order.getOrderStatus() != OrderStatus.REFUNDING) {
             throw new RuntimeException("只能确认退款中的订单");
         }
         // 恢复用户余额
-        Users users = order.getUser();
-        users.setWallet(users.getWallet().add(order.getTotalAmount()));
-        userRepository.save(users);
+        walletService.refund(userId, order.getTotalAmount(), orderId);
         order.setOrderStatus(OrderStatus.REFUNDED);
         return orderRepository.save(order);
     }
@@ -311,7 +316,6 @@ public class OrderService {
     public Page<Order> getOrdersByStatus(OrderStatus orderStatus, OrderPageRequest orderPageRequest) {
         Sort sort = Sort.by(orderPageRequest.sortDirection(), orderPageRequest.sortBy());
         Pageable pageable = PageRequest.of(orderPageRequest.page(), orderPageRequest.size(), sort);
-        System.out.println("orderStatus = " + orderStatus);
         return orderRepository.findAllByOrderStatus(orderStatus, pageable);
     }
 }

@@ -7,7 +7,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import top.stillmisty.shopback.dto.*;
+import top.stillmisty.shopback.dto.ApiResponse;
+import top.stillmisty.shopback.dto.NicknameChangeRequest;
+import top.stillmisty.shopback.dto.PasswordChangeRequest;
+import top.stillmisty.shopback.dto.UserResponse;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.service.UserService;
 import top.stillmisty.shopback.utils.AuthUtils;
@@ -87,16 +90,5 @@ public class UserController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @PatchMapping("/me/wallet")
-    @Operation(summary = "充值余额")
-    public ResponseEntity<ApiResponse<Users>> rechargeWallet(
-            @RequestBody WalletRechargeRequest walletRechargeRequest
-    ) {
-        UUID userId = AuthUtils.getCurrentUserId();
-        // 调用服务层方法处理充值
-        Users users = userService.rechargeWallet(userId, walletRechargeRequest.amount());
-        return ResponseEntity.ok(ApiResponse.success(users));
     }
 }
