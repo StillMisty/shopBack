@@ -1,7 +1,9 @@
 package top.stillmisty.shopback.enums;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
 
+@Getter
 @Schema(description = "订单状态")
 public enum OrderStatus {
     PENDING_PAYMENT("待支付"),
@@ -17,9 +19,5 @@ public enum OrderStatus {
 
     OrderStatus(String description) {
         this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
     }
 }
