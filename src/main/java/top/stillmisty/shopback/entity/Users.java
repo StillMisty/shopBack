@@ -1,12 +1,15 @@
 package top.stillmisty.shopback.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import top.stillmisty.shopback.config.InstantToTimestampSerializer;
+import top.stillmisty.shopback.enums.UserStatus;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -35,12 +38,14 @@ public class Users {
     private String avatar;
 
     @Column(nullable = false)
-    private LocalDateTime registerTime;
-
-    private LocalDateTime lastLoginTime;
+    @JsonSerialize(using = InstantToTimestampSerializer.class)
+    private Instant registerTime;
+    
+    @JsonSerialize(using = InstantToTimestampSerializer.class)
+    private Instant lastLoginTime;
 
     @Column(nullable = false)
-    private Integer userStatus;
+    private UserStatus userStatus;
 
     @Column(nullable = false)
     private boolean isAdmin;
@@ -49,13 +54,13 @@ public class Users {
         this.username = username;
         this.password = password;
         this.nickname = username; // 默认昵称为用户名
-        this.registerTime = LocalDateTime.now();
-        this.userStatus = 1; // 默认状态为1
+        this.registerTime = Instant.now();
+        this.userStatus = UserStatus.NORMAL;
         this.wallet = BigDecimal.ZERO; // 默认钱包余额为0
         this.isAdmin = false; // 默认不是管理员
     }
 
     public Users() {
-        this.registerTime = LocalDateTime.now();
+        this.registerTime = Instant.now();
     }
 }

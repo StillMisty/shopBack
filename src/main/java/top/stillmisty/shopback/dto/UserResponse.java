@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import top.stillmisty.shopback.enums.UserStatus;
 
 import java.util.UUID;
 
@@ -9,6 +10,6 @@ public record UserResponse(
         UUID userId,
         String nickname,
         String avatar,
-        int userStatus
+        UserStatus userStatus
 ) {
 }
