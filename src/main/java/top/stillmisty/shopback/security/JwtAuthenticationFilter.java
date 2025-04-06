@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import top.stillmisty.shopback.entity.Users;
+import top.stillmisty.shopback.enums.UserStatus;
+import top.stillmisty.shopback.exception.UserNotFoundException;
+import top.stillmisty.shopback.exception.UserStatusException;
 import top.stillmisty.shopback.repository.UserRepository;
 
 import java.io.IOException;
@@ -74,25 +77,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        try {
-            // 获取JWT令牌
-            String jwt = getJwtFromRequest(request);
-            // 验证令牌，没有令牌则不进行验证，其也不会被设置身份
-            if (StringUtils.hasText(jwt)) {
-                // 获取用户信息
-                UUID userId = jwtUtils.parseJwt(jwt);
+        // 获取JWT令牌
+        String jwt = getJwtFromRequest(request);
+        // 验证令牌，没有令牌则不进行验证，其也不会被设置身份
+        if (StringUtils.hasText(jwt)) {
+            // 获取用户信息
+            UUID userId = jwtUtils.parseJwt(jwt);
 
-                Users user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("用户不存在"));
-                log.info("JWT认证通过, 用户ID: {}, 是否为管理员{}", userId, user.isAdmin());
-                Authentication authentication = getAuthentication(user);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("用户不存在"));
+
+            if (user.getUserStatus() == UserStatus.FROZEN) {
+                throw new UserStatusException("您的账户已被冻结，请联系管理员");
             }
-        } catch (Exception e) {
-            SecurityContextHolder.clearContext();
-            logger.error("JWT认证失败: {}", e);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 无效授权
-            return;
+            if (user.getUserStatus() == UserStatus.BLACKLISTED) {
+                throw new UserStatusException("您的账户已被列入黑名单，无法访问系统");
+            }
+
+
+            log.info("JWT认证通过, 用户ID: {}, 是否为管理员{}", userId, user.isAdmin());
+            Authentication authentication = getAuthentication(user);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);
     }
