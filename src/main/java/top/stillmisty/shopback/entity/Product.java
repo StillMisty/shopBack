@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 import top.stillmisty.shopback.config.InstantToTimestampSerializer;
@@ -15,37 +16,49 @@ import java.util.UUID;
 public class Product {
     @Id
     @GeneratedValue
+    @Schema(description = "商品 ID")
     private UUID productId;
-    // 商品名称
+
     @Column(nullable = false, length = 100)
+    @Schema(description = "商品名称")
     private String productName;
-    // 商品图片 URL
+
+    @Schema(description = "商品图片 URL")
     private String productImage;
-    // 商品分类
+
+    @Schema(description = "商品分类")
     @Column(nullable = false, length = 50)
     private String productCategory;
-    // 商品商家
+
+    @Schema(description = "商品商家")
     @Column(nullable = false, length = 50)
     private String productMerchant;
-    // 商品描述
+
+    @Schema(description = "商品描述")
     @Column(nullable = false, length = 500)
     private String productDescription;
-    // 商品价格
+
+    @Schema(description = "商品价格")
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal productPrice;
-    // 商品折扣(0-1)
+
+    @Schema(description = "商品折扣(0-1)")
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal productDiscount;
-    // 商品销量
+
+    @Schema(description = "商品销量")
     @Column(nullable = false)
     private int productSoldCount;
-    // 商品库存
+
+    @Schema(description = "商品库存")
     @Column(nullable = false)
     private int productStock;
-    // 是否下架
+
+    @Schema(description = "是否下架")
     @Column(nullable = false)
     private boolean productIsOffShelf;
-    // 上架时间
+
+    @Schema(description = "上架时间")
     @Column(nullable = false)
     @JsonSerialize(using = InstantToTimestampSerializer.class)
     private Instant productOnShelfTime;

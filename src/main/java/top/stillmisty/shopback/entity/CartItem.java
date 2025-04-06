@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,9 +13,9 @@ import java.util.UUID;
 public class CartItem {
     @Id
     @GeneratedValue
+    @Schema(description = "购物车商品 ID")
     private UUID cartItemId;
 
-    // 用户 ID
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
@@ -22,9 +23,10 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @Schema(description = "商品")
     private Product product;
 
-    // 商品数量
+    @Schema(description = "商品数量")
     private Integer quantity;
 
     public CartItem(Users user, Product product, Integer quantity) {

@@ -3,6 +3,7 @@ package top.stillmisty.shopback.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 import top.stillmisty.shopback.config.InstantToTimestampSerializer;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class Order {
     @Id
     @GeneratedValue
+    @Schema(description = "订单 ID")
     private UUID orderId;
 
     // 用户 ID
@@ -28,29 +30,35 @@ public class Order {
     @JsonIgnore
     private Users user;
 
-    // 地址
+
+    @Schema(description = "收货地址")
     private String address;
+
+    @Schema(description = "收件人姓名")
     private String name;
+
+    @Schema(description = "收件人电话")
     private String phone;
 
-    // 订单状态
+    @Schema(description = "订单状态")
     private OrderStatus orderStatus;
 
-    // 订单商品列表
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @Schema(description = "订单商品列表")
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    // 下单时间
     @Column(nullable = false)
     @JsonSerialize(using = InstantToTimestampSerializer.class)
+    @Schema(description = "下单时间")
     private Instant orderTime;
-    // 订单总金额
+
     @Column(nullable = false, precision = 19, scale = 2)
+    @Schema(description = "订单总金额")
     private BigDecimal totalAmount;
 
-    // 订单支付时间
     @JsonSerialize(using = InstantToTimestampSerializer.class)
+    @Schema(description = "支付时间")
     private Instant payTime;
 
     public Order(Users user, String address, String name, String phone) {

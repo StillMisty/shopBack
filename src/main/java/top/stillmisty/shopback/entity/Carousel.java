@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -11,24 +12,25 @@ import java.util.UUID;
 public class Carousel {
     @Id
     @GeneratedValue
+    @Schema(description = "轮播图 ID")
     private UUID id;
 
-    // 图片URL
+    @Schema(description = "轮播图图片URL")
     private String imageUrl;
 
-    // 跳转链接
+    @Schema(description = "轮播图跳转链接")
     @Column(nullable = false)
     private String linkUrl;
 
-    // 标题
+    @Schema(description = "轮播图标题")
     @Column(nullable = false)
     private String title;
 
-    // 排序号
+    @Schema(description = "轮播图排序号")
     @Column(nullable = false)
     private Integer sortOrder;
 
-    // 是否启用
+    @Schema(description = "轮播图是否启用")
     @Column(nullable = false)
     private Boolean enabled = true;
 }
