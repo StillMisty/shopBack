@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ public record CartUpdateRequest(
         UUID productId,
 
         @Schema(description = "要修改到的数量", example = "2")
+        @Min(value = 1, message = "数量必须大于等于 1")
         int quantity
 ) {
 }

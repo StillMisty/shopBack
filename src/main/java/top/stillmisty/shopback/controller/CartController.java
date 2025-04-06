@@ -2,6 +2,7 @@ package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.stillmisty.shopback.dto.ApiResponse;
@@ -35,7 +36,10 @@ public class CartController {
 
     @PostMapping
     @Operation(summary = "修改购物车商品数量")
-    public ResponseEntity<ApiResponse<CartItem>> addToCart(@RequestBody CartUpdateRequest cartUpdateRequest) {
+    public ResponseEntity<ApiResponse<CartItem>> addToCart(
+            @Valid @RequestBody
+            CartUpdateRequest cartUpdateRequest
+    ) {
         UUID userId = AuthUtils.getCurrentUserId();
         CartItem cartItem = cartService.changeCartCount(userId, cartUpdateRequest.productId(), cartUpdateRequest.quantity());
         return ResponseEntity.ok()

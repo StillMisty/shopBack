@@ -2,6 +2,7 @@ package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.stillmisty.shopback.dto.AddressChangeRequest;
@@ -52,7 +53,7 @@ public class OrderController {
     @Operation(summary = "修改订单地址")
     public ResponseEntity<ApiResponse<Order>> updateOrderAddress(
             @PathVariable UUID orderId,
-            @RequestBody AddressChangeRequest addressChangeRequest
+            @Valid @RequestBody AddressChangeRequest addressChangeRequest
     ) {
         Order order = orderService.updateOrderAddress(orderId, addressChangeRequest);
         return ResponseEntity.ok(ApiResponse.success(order));

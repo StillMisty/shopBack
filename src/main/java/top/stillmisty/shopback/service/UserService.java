@@ -1,9 +1,12 @@
 package top.stillmisty.shopback.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.entity.Users;
+import top.stillmisty.shopback.enums.UserStatus;
 import top.stillmisty.shopback.repository.UserRepository;
 import top.stillmisty.shopback.utils.PictureUtils;
 
@@ -64,5 +67,38 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         existingUser.setAvatar(avatarUrl);
         return userRepository.save(existingUser);
+    }
+
+    public Page<Users> getAllUsers(int page, int size) {
+        return userRepository.findAll(PageRequest.of(page, size));
+    }
+
+    public Page<Users> getUsersByStatus(UserStatus status, int page, int size) {
+        return userRepository.findByUserStatus(status, PageRequest.of(page, size));
+    }
+
+    public Page<Users> searchUsers(String username, int page, int size) {
+        return userRepository.findByUsernameContaining(username, PageRequest.of(page, size));
+    }
+
+    public Users updateUserStatus(UUID userId, UserStatus status) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        user.setUserStatus(status);
+        return userRepository.save(user);
+    }
+
+    public Users setAdminRole(UUID userId, boolean isAdmin) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        user.setAdmin(isAdmin);
+        return userRepository.save(user);
+    }
+
+    public Users resetUserPassword(UUID userId, String newPassword) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        user.setPassword(newPassword);
+        return userRepository.save(user);
     }
 }
