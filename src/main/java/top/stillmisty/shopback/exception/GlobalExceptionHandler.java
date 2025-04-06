@@ -18,34 +18,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         logger.error("运行时异常: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
         logger.error("用户未找到: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         logger.error("授权被拒绝: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("没有足够的权限"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("没有足够的权限"));
     }
 
     // 处理参数验证异常
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         StringBuilder errorMsg = new StringBuilder();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errorMsg.append(error.getDefaultMessage()).append("; ");
-        });
+        ex.getBindingResult().getFieldErrors().forEach(
+                error -> errorMsg.append(error.getDefaultMessage()).append("; ")
+        );
 
         // 移除最后的分号和空格(如果有)
         String errorMessage = errorMsg.toString();
@@ -54,7 +48,6 @@ public class GlobalExceptionHandler {
         }
 
         logger.error("参数验证异常: {}", errorMessage);
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(errorMessage));
+        return ResponseEntity.badRequest().body(ApiResponse.error(errorMessage));
     }
 }
