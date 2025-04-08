@@ -38,6 +38,10 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "用户注册")
     public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody LoginRequest loginRequest) {
+        if (authService.userExists(loginRequest.username())) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("用户已存在"));
+        }
         String jwt = authService.register(loginRequest.username(), loginRequest.password());
         return ResponseEntity.ok()
                 .body(ApiResponse.success(new LoginResponse(jwt)));

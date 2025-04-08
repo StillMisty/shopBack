@@ -19,4 +19,6 @@ public interface UserRepository extends CrudRepository<Users, UUID> {
     Page<Users> findByUserStatus(UserStatus status, Pageable pageable);
 
     Page<Users> findByUsernameContaining(String username, Pageable pageable);
+
+    boolean existsByUsername(String username);
 }

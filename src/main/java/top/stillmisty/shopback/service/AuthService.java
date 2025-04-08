@@ -43,6 +43,11 @@ public class AuthService {
         return getJwt(username, password);
     }
 
+    // 判断用户是否存在
+    public boolean userExists(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
     /**
      * 用户注册
      *
