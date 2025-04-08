@@ -95,7 +95,11 @@ java -jar shopBack-0.0.1.jar
 
 ## 3.3 Docker启动
 
-休息会再搞，欢迎PR
+构建Docker镜像并启动
+
+``` shell
+docker-compose up
+```
 
 # 4. 其他
 
