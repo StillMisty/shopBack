@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.dto.ApiResponse;
 import top.stillmisty.shopback.dto.NicknameChangeRequest;
-import top.stillmisty.shopback.dto.PasswordChangeRequest;
+import top.stillmisty.shopback.dto.PasswordResetRequest;
 import top.stillmisty.shopback.dto.UserResponse;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.service.UserService;
@@ -57,11 +57,11 @@ public class UserController {
     @PatchMapping("/me/password")
     @Operation(summary = "修改密码")
     public ResponseEntity<ApiResponse<Users>> changePassword(
-            @Valid @RequestBody PasswordChangeRequest password
+            @Valid @RequestBody PasswordResetRequest passwordChangeRequest
     ) {
         // 从安全上下文中获取当前用户ID
         UUID userId = AuthUtils.getCurrentUserId();
-        Users users = userService.changePassword(userId, password.password());
+        Users users = userService.changePassword(userId, passwordChangeRequest);
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 

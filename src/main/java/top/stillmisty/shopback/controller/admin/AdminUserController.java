@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.stillmisty.shopback.dto.AdminPasswordResetRequest;
 import top.stillmisty.shopback.dto.NicknameChangeRequest;
-import top.stillmisty.shopback.dto.PasswordChangeRequest;
 import top.stillmisty.shopback.dto.UserIsAdminChangeRequest;
 import top.stillmisty.shopback.dto.UserStatusChangeRequest;
 import top.stillmisty.shopback.entity.Users;
@@ -104,9 +104,11 @@ public class AdminUserController {
     @PutMapping("/{userId}/password")
     @Operation(summary = "重置用户密码")
     public ResponseEntity<Users> resetPassword(
-            @PathVariable UUID userId,
-            @RequestBody PasswordChangeRequest passwordChangeRequest
+            @PathVariable
+            UUID userId,
+            @RequestBody
+            AdminPasswordResetRequest adminPasswordResetRequest
     ) {
-        return ResponseEntity.ok(userService.resetUserPassword(userId, passwordChangeRequest.password()));
+        return ResponseEntity.ok(userService.resetUserPassword(userId, adminPasswordResetRequest.newPassword()));
     }
 }

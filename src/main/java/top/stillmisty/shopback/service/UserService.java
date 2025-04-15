@@ -4,8 +4,10 @@ import cn.hutool.core.util.IdUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import top.stillmisty.shopback.dto.PasswordResetRequest;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.enums.UserStatus;
 import top.stillmisty.shopback.repository.UserRepository;
@@ -23,12 +25,15 @@ public class UserService {
 
     private final Path avatarPath;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Value("${app.base-url}")
     private String baseUrl;
 
-    public UserService(UserRepository userRepository, @Value("${file.upload-dir}") String uploadDir) {
+    public UserService(UserRepository userRepository, @Value("${file.upload-dir}") String uploadDir, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.avatarPath = Paths.get(uploadDir + "/avatars");
+        this.passwordEncoder = passwordEncoder;
         try {
             if (!Files.exists(avatarPath)) {
                 Files.createDirectories(avatarPath);
@@ -43,10 +48,17 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
     }
 
-    public Users changePassword(UUID userId, String password) {
+    public Users changePassword(UUID userId, PasswordResetRequest passwordChangeRequest) {
         Users existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
-        existingUser.setPassword(password);
+
+        // 使用密码编码器对新密码进行加密
+        if (!passwordEncoder.matches(passwordChangeRequest.oldPassword(), existingUser.getPassword())) {
+            throw new RuntimeException("旧密码错误");
+        }
+        // 设置新密码
+        // 使用密码编码器对新密码进行加密
+        existingUser.setPassword(passwordEncoder.encode(passwordChangeRequest.newPassword()));
         return userRepository.save(existingUser);
     }
 
@@ -104,7 +116,8 @@ public class UserService {
     public Users resetUserPassword(UUID userId, String newPassword) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
-        user.setPassword(newPassword);
+        // 使用密码编码器对新密码进行加密
+        user.setPassword(passwordEncoder.encode(newPassword));
         return userRepository.save(user);
     }
 }
