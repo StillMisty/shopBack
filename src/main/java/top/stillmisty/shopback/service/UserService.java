@@ -68,7 +68,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         // 删除旧头像文件
         if (existingUser.getAvatar() != null) {
-            String oldAvatarPath = existingUser.getAvatar().replace(baseUrl + "/public/avatars/", "");
+            String oldAvatarPath = existingUser.getAvatar().split("/public/avatars/")[1];
             Files.deleteIfExists(avatarPath.resolve(oldAvatarPath));
         }
         existingUser.setAvatar(avatarUrl);
