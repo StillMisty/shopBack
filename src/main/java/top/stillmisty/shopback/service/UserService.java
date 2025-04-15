@@ -66,6 +66,11 @@ public class UserService {
 
         Users existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
+        // 删除旧头像文件
+        if (existingUser.getAvatar() != null) {
+            String oldAvatarPath = existingUser.getAvatar().replace(baseUrl + "/public/avatars/", "");
+            Files.deleteIfExists(avatarPath.resolve(oldAvatarPath));
+        }
         existingUser.setAvatar(avatarUrl);
         return userRepository.save(existingUser);
     }
