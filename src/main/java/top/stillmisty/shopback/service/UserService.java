@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.service;
 
+import cn.hutool.core.util.IdUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,7 +59,7 @@ public class UserService {
 
     public Users changeAvatar(UUID userId, MultipartFile avatarFile) throws IOException {
 
-        String filename = PictureUtils.savePicture(userId.toString(), avatarFile, avatarPath);
+        String filename = PictureUtils.savePicture(IdUtil.simpleUUID(), avatarFile, avatarPath);
 
         // 更新用户头像URL
         String avatarUrl = baseUrl + "/public/avatars/" + filename;

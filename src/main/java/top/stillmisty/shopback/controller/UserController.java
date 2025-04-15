@@ -80,7 +80,7 @@ public class UserController {
     @PatchMapping(path = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "修改头像")
     public ResponseEntity<ApiResponse<Users>> changeAvatar(
-            @RequestParam("image") MultipartFile file
+            @RequestParam("avatar") MultipartFile file
     ) {
         UUID userId = AuthUtils.getCurrentUserId();
         // 调用服务层方法处理文件上传

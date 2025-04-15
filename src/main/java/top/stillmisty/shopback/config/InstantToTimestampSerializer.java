@@ -15,7 +15,7 @@ public class InstantToTimestampSerializer extends JsonSerializer<Instant> {
             SerializerProvider serializerProvider
     ) throws IOException {
         if (instant != null) {
-            jsonGenerator.writeNumber(instant.getEpochSecond());
+            jsonGenerator.writeNumber(instant.toEpochMilli());
         } else {
             jsonGenerator.writeNull();
         }
