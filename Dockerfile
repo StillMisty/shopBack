@@ -24,9 +24,6 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-# 创建上传目录
-RUN mkdir -p /app/src/main/resources/static/public/avatars
-
 # 入口点
 ENTRYPOINT ["java","-cp","app:app/lib/*","top.stillmisty.shopback.ShopBackApplication"]
 
