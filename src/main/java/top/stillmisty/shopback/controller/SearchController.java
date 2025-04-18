@@ -2,6 +2,7 @@ package top.stillmisty.shopback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -18,6 +19,7 @@ import top.stillmisty.shopback.service.SearchService;
 
 @RestController
 @RequestMapping("/api/search")
+@SecurityRequirements
 @Tag(name = "搜索服务", description = "商品搜索接口")
 @Validated
 public class SearchController {

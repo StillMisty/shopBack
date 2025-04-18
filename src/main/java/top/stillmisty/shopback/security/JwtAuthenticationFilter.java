@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import top.stillmisty.shopback.config.SecurityConstants;
 import top.stillmisty.shopback.entity.Users;
 import top.stillmisty.shopback.enums.UserStatus;
 import top.stillmisty.shopback.exception.UserNotFoundException;
@@ -65,14 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 获取当前请求路径
         String path = request.getServletPath();
 
-        // 如果是认证和 Swagger 相关路径，直接放行，不执行JWT验证
-        if (path.startsWith("/api/auth/")
-                || path.startsWith("/v3/api-docs/")
-                || path.startsWith("/swagger-ui/")
-                || path.startsWith("/api/carousel/")
-                || path.startsWith("/api/product/")
-                || path.startsWith("/public/")
-        ) {
+        // 使用统一的白名单判断
+        if (SecurityConstants.isUrlInWhiteList(path)) {
             filterChain.doFilter(request, response);
             return;
         }
