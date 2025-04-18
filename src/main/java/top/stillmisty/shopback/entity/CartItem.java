@@ -3,13 +3,21 @@ package top.stillmisty.shopback.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "cart_items")
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class CartItem {
     @Id
     @GeneratedValue
@@ -19,6 +27,7 @@ public class CartItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
+    @ToString.Exclude
     private Users user;
 
     @ManyToOne
@@ -35,7 +44,19 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    public CartItem() {
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        CartItem cartItem = (CartItem) o;
+        return getCartItemId() != null && Objects.equals(getCartItemId(), cartItem.getCartItemId());
+    }
 
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

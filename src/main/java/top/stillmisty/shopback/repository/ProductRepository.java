@@ -24,9 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             boolean isOffShelf
     );
 
-    @Query("SELECT p FROM Product p WHERE " +
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.productCategories c WHERE " +
             "(:keyword = '' OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "(:category = '' OR LOWER(p.productCategory) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
+            "(:category = '' OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :category, '%'))) AND " +
             "(:merchant = '' OR LOWER(p.productMerchant) LIKE LOWER(CONCAT('%', :merchant, '%'))) AND " +
             "(:minPrice IS NULL OR p.productPrice >= :minPrice) AND " +
             "(:maxPrice IS NULL OR p.productPrice <= :maxPrice) AND " +

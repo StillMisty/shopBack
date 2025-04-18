@@ -3,16 +3,26 @@ package top.stillmisty.shopback.entity;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 import top.stillmisty.shopback.config.InstantToTimestampSerializer;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "products")
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Product {
     @Id
     @GeneratedValue
@@ -26,9 +36,15 @@ public class Product {
     @Schema(description = "商品图片 URL")
     private String productImage;
 
-    @Schema(description = "商品分类")
-    @Column(nullable = false, length = 50)
-    private String productCategory;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "product_category",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Schema(description = "商品所属类别")
+    @ToString.Exclude
+    private Set<Category> productCategories = new HashSet<>();
 
     @Schema(description = "商品商家")
     @Column(nullable = false, length = 50)
@@ -64,12 +80,12 @@ public class Product {
     private Instant productOnShelfTime;
 
     public Product(
-            String productName, String productCategory, String productMerchant,
+            String productName, Set<Category> productCategories, String productMerchant,
             String productDescription, BigDecimal productPrice, BigDecimal productDiscount,
             int productStock
     ) {
         this.productName = productName;
-        this.productCategory = productCategory;
+        this.productCategories = productCategories;
         this.productMerchant = productMerchant;
         this.productDescription = productDescription;
         this.productPrice = productPrice;
@@ -80,6 +96,19 @@ public class Product {
         productOnShelfTime = Instant.now();
     }
 
-    public Product() {
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        Product product = (Product) o;
+        return getProductId() != null && Objects.equals(getProductId(), product.getProductId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

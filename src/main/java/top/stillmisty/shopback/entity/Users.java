@@ -4,19 +4,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 import top.stillmisty.shopback.config.InstantToTimestampSerializer;
 import top.stillmisty.shopback.enums.UserStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Data
 @AllArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Users {
 
     @Id
@@ -71,7 +75,19 @@ public class Users {
         this.isAdmin = false; // 默认不是管理员
     }
 
-    public Users() {
-        this.registerTime = Instant.now();
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        Users users = (Users) o;
+        return getUserId() != null && Objects.equals(getUserId(), users.getUserId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

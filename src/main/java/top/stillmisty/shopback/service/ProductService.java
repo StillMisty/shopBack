@@ -10,7 +10,9 @@ import org.springframework.web.multipart.MultipartFile;
 import top.stillmisty.shopback.dto.ProductAddRequest;
 import top.stillmisty.shopback.dto.ProductChangeRequest;
 import top.stillmisty.shopback.dto.ProductPageRequest;
+import top.stillmisty.shopback.entity.Category;
 import top.stillmisty.shopback.entity.Product;
+import top.stillmisty.shopback.repository.CategoryRepository;
 import top.stillmisty.shopback.repository.ProductRepository;
 import top.stillmisty.shopback.utils.PictureUtils;
 
@@ -18,17 +20,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     private final Path productImagePath;
     @Value("${app.base-url}")
     private String baseUrl;
 
-    public ProductService(ProductRepository productRepository, @Value("${file.upload-dir}") String uploadDir) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, @Value("${file.upload-dir}") String uploadDir) {
+        this.categoryRepository = categoryRepository;
         this.productImagePath = Paths.get(uploadDir + "/products");
         try {
             if (!Files.exists(productImagePath)) {
@@ -82,9 +88,16 @@ public class ProductService {
      * @return 商品实体
      */
     public Product addProduct(ProductAddRequest productAddRequest) {
+        // 处理类别
+        Set<Category> productCategories = productAddRequest.productCategories()
+                .stream()
+                .map(categoryId -> categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new RuntimeException("类别不存在")))
+                .collect(Collectors.toSet());
+
         Product product = new Product(
                 productAddRequest.productName(),
-                productAddRequest.productCategory(),
+                productCategories,
                 productAddRequest.productMerchant(),
                 productAddRequest.productDescription(),
                 productAddRequest.productPrice(),
@@ -95,15 +108,22 @@ public class ProductService {
     }
 
     /**
-     * 删除商品
+     * 更新商品
      *
      * @param id 商品ID
-     * @return 删除的商品实体
+     * @return 更新后的商品实体
      */
     public Product updateProduct(UUID id, ProductChangeRequest productChangeRequest) {
+        // 处理类别
+        Set<Category> productCategories = productChangeRequest.productCategories()
+                .stream()
+                .map(categoryId -> categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new RuntimeException("类别不存在")))
+                .collect(Collectors.toSet());
+
         Product product = getProductById(id);
         product.setProductName(productChangeRequest.productName());
-        product.setProductCategory(productChangeRequest.productCategory());
+        product.setProductCategories(productCategories);
         product.setProductMerchant(productChangeRequest.productMerchant());
         product.setProductDescription(productChangeRequest.productDescription());
         product.setProductPrice(productChangeRequest.productPrice());

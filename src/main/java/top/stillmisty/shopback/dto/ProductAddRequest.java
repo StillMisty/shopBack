@@ -5,13 +5,15 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
+import java.util.Set;
+import java.util.UUID;
 
 @Schema(description = "添加商品请求体")
 public record ProductAddRequest(
         @Schema(description = "商品名称", example = "商品名称")
         String productName,
-        @Schema(description = "商品种类", example = "家电")
-        String productCategory,
+        @Schema(description = "类别ID列表")
+        Set<UUID> productCategories,
         @Schema(description = "商品生产商", example = "小米")
         String productMerchant,
         @Schema(description = "商品描述", example = "商品描述")

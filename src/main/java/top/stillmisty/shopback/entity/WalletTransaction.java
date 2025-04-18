@@ -4,20 +4,26 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 import top.stillmisty.shopback.config.InstantToTimestampSerializer;
 import top.stillmisty.shopback.enums.TransactionStatus;
 import top.stillmisty.shopback.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "wallet_transactions")
-@Data
 @NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class WalletTransaction {
 
     @Id
@@ -28,6 +34,7 @@ public class WalletTransaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
     private Users user;
 
     @Column(nullable = false, precision = 19, scale = 2)
@@ -61,5 +68,21 @@ public class WalletTransaction {
         this.description = description;
         this.status = TransactionStatus.COMPLETED;
         this.createdAt = Instant.now();
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        WalletTransaction that = (WalletTransaction) o;
+        return getTransactionId() != null && Objects.equals(getTransactionId(), that.getTransactionId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }
