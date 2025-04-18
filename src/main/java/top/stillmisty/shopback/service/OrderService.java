@@ -13,6 +13,7 @@ import top.stillmisty.shopback.repository.*;
 import top.stillmisty.shopback.utils.AuthUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class OrderService {
     }
 
     /**
-     * 计算订单总金额
+     * 计算订单总金额，对每个订单商品计算折扣后的价格四舍五入，保留两位小数，再乘以数量，最后相加
      *
      * @param order 订单
      * @return 订单总金额
@@ -48,8 +49,10 @@ public class OrderService {
         for (OrderItem orderItem : order.getOrderItems()) {
             BigDecimal price = orderItem.getProduct().getProductPrice();
             BigDecimal discount = orderItem.getProduct().getProductDiscount();
+            // 折扣后的价格，四舍五入，保留两位小数
+            BigDecimal discountedPrice = price.multiply(discount).setScale(2, RoundingMode.HALF_UP);
             BigDecimal quantity = new BigDecimal(orderItem.getQuantity());
-            BigDecimal itemTotal = price.multiply(discount).multiply(quantity);
+            BigDecimal itemTotal = discountedPrice.multiply(quantity);
             total = total.add(itemTotal);
         }
         return total;
