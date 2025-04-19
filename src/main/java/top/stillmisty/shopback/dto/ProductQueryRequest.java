@@ -14,7 +14,7 @@ public record ProductQueryRequest(
         @Size(max = 50, message = "关键字长度必须在0-50之间")
         String keyword,
 
-        @Schema(description = "查询分类列表", example = "手机 电子产品")
+        @Schema(description = "查询分类", example = "手机")
         String category,
 
         @Schema(description = "查询商家", example = "米哈游株式会社")
