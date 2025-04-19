@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.service;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -152,5 +153,11 @@ public class ProductService {
         Product product = getProductById(productId);
         product.setProductImage(productImageUrl);
         return productRepository.save(product);
+    }
+
+    public Page<Product> getProductsByCategoryId(UUID categoryId, @Valid ProductPageRequest productPageRequest) {
+        Sort sort = Sort.by(productPageRequest.sortDirection(), productPageRequest.sortBy());
+        Pageable pageable = PageRequest.of(productPageRequest.page(), productPageRequest.size(), sort);
+        return productRepository.findAllByProductCategories_CategoryIdAndProductIsOffShelf(categoryId, false, pageable);
     }
 }

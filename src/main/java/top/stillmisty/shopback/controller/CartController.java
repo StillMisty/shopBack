@@ -3,6 +3,7 @@ package top.stillmisty.shopback.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.stillmisty.shopback.dto.ApiResponse;
@@ -48,10 +49,9 @@ public class CartController {
 
     @DeleteMapping
     @Operation(summary = "删除购物车中所有商品")
-    public ResponseEntity<ApiResponse<Void>> clearCart() {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCart() {
         UUID userId = AuthUtils.getCurrentUserId();
         cartService.clearCart(userId);
-        return ResponseEntity.ok()
-                .body(ApiResponse.success(null));
     }
 }

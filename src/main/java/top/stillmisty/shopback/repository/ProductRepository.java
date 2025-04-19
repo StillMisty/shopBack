@@ -40,4 +40,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             Boolean includeOffShelf,
             Pageable pageable
     );
+
+    // 根据种类ID分页获取商品列表
+    Page<Product> findAllByProductCategories_CategoryIdAndProductIsOffShelf(
+            UUID categoryId,
+            boolean isOffShelf,
+            Pageable pageable
+    );
 }

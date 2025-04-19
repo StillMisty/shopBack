@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,9 +78,9 @@ public class AdminCarouselController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "删除轮播图")
-    public ResponseEntity<ApiResponse<Void>> deleteCarousel(@PathVariable UUID id) {
+    public void deleteCarousel(@PathVariable UUID id) {
         carouselService.deleteCarousel(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

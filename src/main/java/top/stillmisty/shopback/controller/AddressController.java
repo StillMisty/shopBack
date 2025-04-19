@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -53,13 +54,13 @@ public class AddressController {
 
     @DeleteMapping("/{addressId}")
     @Operation(summary = "删除地址")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> deleteAddress(
+    public void deleteAddress(
             @Parameter(description = "要删除的地址ID")
             @PathVariable Long addressId
     ) {
         addressService.deleteAddress(addressId, AuthUtils.getCurrentUserId());
-        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/{addressId}")

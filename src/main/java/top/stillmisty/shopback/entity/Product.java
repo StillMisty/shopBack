@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -36,7 +37,8 @@ public class Product {
     @Schema(description = "商品图片 URL")
     private String productImage;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY)
     @JoinTable(
             name = "product_category",
             joinColumns = @JoinColumn(name = "product_id"),
@@ -44,6 +46,7 @@ public class Product {
     )
     @Schema(description = "商品所属类别")
     @ToString.Exclude
+    @JsonIgnore
     private Set<Category> productCategories = new HashSet<>();
 
     @Schema(description = "商品商家")

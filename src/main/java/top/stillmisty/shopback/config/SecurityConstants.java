@@ -10,7 +10,8 @@ public class SecurityConstants {
             "/api/carousel/**",
             "/api/product/**",
             "/public/**",
-            "/api/search/**"
+            "/api/search/**",
+            "/api/categories/**"
     );
 
     // 判断路径是否在白名单中的工具方法

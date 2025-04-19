@@ -40,4 +40,14 @@ public class ProductController {
         Product product = productService.getProductById(id);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
+
+    @PostMapping("/category/{categoryId}")
+    @Operation(summary = "根据类别 ID 分页获取商品列表")
+    public ResponseEntity<ApiResponse<Page<Product>>> getProductsByCategoryId(
+            @PathVariable UUID categoryId,
+            @Valid @RequestBody ProductPageRequest productPageRequest
+    ) {
+        Page<Product> products = productService.getProductsByCategoryId(categoryId, productPageRequest);
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
 }
