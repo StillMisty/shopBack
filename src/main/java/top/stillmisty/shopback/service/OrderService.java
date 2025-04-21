@@ -100,7 +100,13 @@ public class OrderService {
         }
         // 遍历购物车商品，创建订单商品列表
         List<OrderItem> orderItems = new ArrayList<>();
+
         for (CartItem cartItem : cartItemsByUser) {
+            // 检查商品是否选中
+            if (!cartItem.isChecked()) {
+                continue;
+            }
+
             Product product = cartItem.getProduct();
             // 检查商品是否下架
             if (product.isProductIsOffShelf()) {

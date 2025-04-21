@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.service;
 
 import org.springframework.stereotype.Service;
+import top.stillmisty.shopback.dto.CartUpdateRequest;
 import top.stillmisty.shopback.entity.CartItem;
 import top.stillmisty.shopback.entity.Product;
 import top.stillmisty.shopback.entity.Users;
@@ -41,30 +42,35 @@ public class CartService {
     /**
      * 添加或更新购物车中的商品数量
      *
-     * @param userId    用户ID
-     * @param productId 商品ID
-     * @param quantity  数量
+     * @param userId            用户ID
+     * @param cartUpdateRequest 购物车更新请求
      * @return 更新后的购物车项
      */
-    public CartItem changeCartCount(UUID userId, UUID productId, int quantity) {
+    public CartItem changeCartCount(UUID userId, CartUpdateRequest cartUpdateRequest) {
         // 先获取产品信息
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findById(cartUpdateRequest.productId())
                 .orElseThrow(() -> new RuntimeException("商品不存在"));
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         // 根据用户和商品查找购物车项
         CartItem cartItem = cartItemRepository.findCartItemsByUser(user).stream()
-                .filter(item -> item.getProduct().getProductId().equals(productId))
+                .filter(item -> item.getProduct().getProductId().equals(cartUpdateRequest.productId()))
                 .findFirst()
                 .orElse(null);
 
         if (cartItem == null) {
             // 如果购物车中没有该商品，则添加
-            cartItem = new CartItem(user, product, quantity);
+            cartItem = new CartItem(user, product, cartUpdateRequest.quantity());
         } else {
             // 如果购物车中已经有该商品，则更新数量
-            cartItem.setQuantity(quantity);
+            if (cartUpdateRequest.increment()) {
+                // 增量模式：增加数量
+                cartItem.setQuantity(cartItem.getQuantity() + cartUpdateRequest.quantity());
+            } else {
+                // 设置模式：直接设置数量
+                cartItem.setQuantity(cartUpdateRequest.quantity());
+            }
         }
 
         return cartItemRepository.save(cartItem);
@@ -80,5 +86,32 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
         // 清空购物车中的商品
         cartItemRepository.deleteAll(cartItemRepository.findCartItemsByUser(user));
+    }
+
+    public void deleteCartItem(UUID userId, UUID cartItemId) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        // 删除购物车中的商品
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("购物车项不存在"));
+        if (cartItem.getUser().equals(user)) {
+            cartItemRepository.delete(cartItem);
+        } else {
+            throw new RuntimeException("无法删除其他用户的购物车项");
+        }
+    }
+
+    public CartItem updateCartItemSelection(UUID userId, UUID cartItemId, boolean selected) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        // 更新购物车项的选中状态
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("购物车项不存在"));
+        if (cartItem.getUser().equals(user)) {
+            cartItem.setChecked(selected);
+            return cartItemRepository.save(cartItem);
+        } else {
+            throw new RuntimeException("无法更新其他用户的购物车项");
+        }
     }
 }

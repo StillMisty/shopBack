@@ -19,11 +19,14 @@ import java.util.UUID;
 @ToString
 @RequiredArgsConstructor
 public class CartItem {
+    @Column(nullable = false)
+    @Schema(description = "是否选中")
+    boolean checked;
     @Id
     @GeneratedValue
+    @Column(nullable = false)
     @Schema(description = "购物车商品 ID")
     private UUID cartItemId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
@@ -36,9 +39,10 @@ public class CartItem {
     private Product product;
 
     @Schema(description = "商品数量")
+    @Column(nullable = false)
     private Integer quantity;
 
-    public CartItem(Users user, Product product, Integer quantity) {
+    public CartItem(Users user, Product product, int quantity) {
         this.user = user;
         this.product = product;
         this.quantity = quantity;
