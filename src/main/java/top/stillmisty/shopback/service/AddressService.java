@@ -24,11 +24,6 @@ public class AddressService {
         return addressRepository.findByUser_UserId(userId);
     }
 
-    public Address findByAddressId(Long addressId) {
-        return addressRepository.findByAddressId(addressId)
-                .orElseThrow(() -> new RuntimeException("地址不存在"));
-    }
-
     public void deleteByAddressId(Long addressId) {
         addressRepository.deleteByAddressId(addressId);
     }
@@ -61,13 +56,7 @@ public class AddressService {
      * @return 新增的地址
      */
     public void deleteAddress(Long addressId, UUID userId) {
-        Address address = findByAddressId(addressId);
-        if (address == null) {
-            throw new RuntimeException("地址不存在");
-        }
-        if (!address.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("没有权限删除该地址");
-        }
+        Address address = findByAddressIdAndUserId(addressId, userId);
         deleteByAddressId(addressId);
     }
 
@@ -80,16 +69,54 @@ public class AddressService {
      * @return 更新的地址
      */
     public Address updateAddress(Long addressId, AddressChangeRequest addressChangeRequest, UUID userId) {
-        Address currentAddress = findByAddressId(addressId);
-        if (currentAddress == null) {
-            throw new RuntimeException("地址不存在");
-        }
-        if (!currentAddress.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("没有权限修改该地址");
-        }
+        Address currentAddress = findByAddressIdAndUserId(addressId, userId);
         currentAddress.setName(addressChangeRequest.name());
         currentAddress.setAddress(addressChangeRequest.address());
         currentAddress.setPhone(addressChangeRequest.phone());
         return save(currentAddress);
+    }
+
+    /**
+     * 设置或取消默认地址
+     *
+     * @param addressId  地址ID
+     * @param userId     用户ID
+     * @param setDefault 是否设为默认地址
+     * @return 更新后的地址
+     */
+    public Address updateDefaultStatus(Long addressId, UUID userId, boolean isDefault) {
+        // 验证地址是否属于当前用户
+        Address address = findByAddressIdAndUserId(addressId, userId);
+
+        if (isDefault) {
+            // 重置该用户的所有默认地址
+            List<Address> userAddresses = findByUser_UserId(userId);
+            userAddresses.stream()
+                    .filter(Address::isDefault)
+                    .forEach(addr -> {
+                        addr.setDefault(false);
+                        addressRepository.save(addr);
+                    });
+
+            // 设置新的默认地址
+            address.setDefault(true);
+        } else {
+            // 取消默认状态
+            address.setDefault(false);
+        }
+
+        return addressRepository.save(address);
+    }
+
+    /**
+     * 根据地址ID和用户ID查找地址
+     *
+     * @param addressId 地址ID
+     * @param userId    用户ID
+     * @return 地址对象
+     */
+    private Address findByAddressIdAndUserId(Long addressId, UUID userId) {
+        return addressRepository.findByAddressIdAndUser_UserId(addressId, userId)
+                .orElseThrow(() -> new RuntimeException("地址不存在或不属于当前用户"));
     }
 }

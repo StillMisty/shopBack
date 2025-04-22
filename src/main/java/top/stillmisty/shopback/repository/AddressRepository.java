@@ -18,4 +18,6 @@ public interface AddressRepository extends CrudRepository<Address, Long> {
 
     // 根据地址ID删除地址
     void deleteByAddressId(Long addressId);
+
+    Optional<Address> findByAddressIdAndUser_UserId(Long addressId, UUID userId);
 }

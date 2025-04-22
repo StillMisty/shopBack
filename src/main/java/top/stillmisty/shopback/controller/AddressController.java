@@ -78,4 +78,21 @@ public class AddressController {
         );
         return ResponseEntity.ok(ApiResponse.success(updatedAddress));
     }
+
+    @PatchMapping("/{addressId}/set-default")
+    @Operation(summary = "设置默认地址")
+    @Transactional
+    public ResponseEntity<ApiResponse<Address>> updateDefaultStatus(
+            @Parameter(description = "要设置为默认的地址ID")
+            @PathVariable Long addressId,
+            @Parameter(description = "是否设为默认地址，true为设置，false为取消，默认true")
+            @RequestParam(defaultValue = "true") boolean isDefault
+    ) {
+        Address defaultAddress = addressService.updateDefaultStatus(
+                addressId,
+                AuthUtils.getCurrentUserId(),
+                isDefault
+        );
+        return ResponseEntity.ok(ApiResponse.success(defaultAddress));
+    }
 }

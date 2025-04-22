@@ -1,6 +1,7 @@
 package top.stillmisty.shopback.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,6 +24,11 @@ public class Address {
     @Schema(description = "地址 ID")
     private Long addressId;
 
+    @Schema(description = "是否默认地址")
+    @Column(nullable = false)
+    @JsonProperty("isDefault")
+    private boolean isDefault;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
@@ -43,6 +49,7 @@ public class Address {
         this.name = name;
         this.phone = phone;
         this.user = user;
+        this.isDefault = false;
     }
 
     @Override
