@@ -1,5 +1,6 @@
 package top.stillmisty.shopback.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -93,6 +94,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("JWT认证通过, 用户ID: {}, 是否为管理员{}", userId, user.isAdmin());
             Authentication authentication = getAuthentication(user);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            throw new JwtException("JWT令牌不存在");
         }
         filterChain.doFilter(request, response);
     }

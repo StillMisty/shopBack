@@ -34,7 +34,7 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOrdersByUserId(userId)));
     }
 
-    @PostMapping
+    @PostMapping("/checkout")
     @Operation(summary = "购物车结算创建订单")
     public ResponseEntity<ApiResponse<Order>> createOrder(@RequestBody CheckoutRequest checkoutRequest) {
         UUID userId = AuthUtils.getCurrentUserId();

@@ -47,7 +47,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
             // JWT解析异常处理
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            Map<String, Object> errorResponse = createErrorResponse("无效的JWT令牌");
+            Map<String, Object> errorResponse = createErrorResponse(ex.getMessage());
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
         } catch (RuntimeException ex) {
             // 其他运行时异常处理
