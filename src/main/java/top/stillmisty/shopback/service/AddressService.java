@@ -119,4 +119,9 @@ public class AddressService {
         return addressRepository.findByAddressIdAndUser_UserId(addressId, userId)
                 .orElseThrow(() -> new RuntimeException("地址不存在或不属于当前用户"));
     }
+
+    public Address getAddressById(Long addressId, UUID currentUserId) {
+        return addressRepository.findByAddressIdAndUser_UserId(addressId, currentUserId)
+                .orElseThrow(() -> new RuntimeException("地址不存在或不属于当前用户"));
+    }
 }

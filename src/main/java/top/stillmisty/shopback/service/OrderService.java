@@ -75,7 +75,10 @@ public class OrderService {
      * @return 订单列表
      */
     public List<Order> getOrdersByUserId(UUID userId) {
-        return orderRepository.findByUser_UserId(userId);
+        // 以下单时间降序排列
+//        return orderRepository.findByUser_UserId(userId);
+        Sort sort = Sort.by(Sort.Direction.DESC, "orderTime");
+        return orderRepository.findByUser_UserId(userId, sort);
     }
 
     /**
@@ -326,5 +329,10 @@ public class OrderService {
         Sort sort = Sort.by(orderPageRequest.sortDirection(), orderPageRequest.sortBy());
         Pageable pageable = PageRequest.of(orderPageRequest.page(), orderPageRequest.size(), sort);
         return orderRepository.findAllByOrderStatus(orderStatus, pageable);
+    }
+
+    public Order getOrderById(UUID userId, UUID orderId) {
+        return orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
     }
 }

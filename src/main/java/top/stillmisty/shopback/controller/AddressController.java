@@ -36,6 +36,16 @@ public class AddressController {
         return ResponseEntity.ok(ApiResponse.success(addressList));
     }
 
+    @GetMapping("/{addressId}")
+    @Operation(summary = "获取地址详情")
+    public ResponseEntity<ApiResponse<Address>> getAddressById(
+            @Parameter(description = "要获取的地址ID")
+            @PathVariable Long addressId
+    ) {
+        Address address = addressService.getAddressById(addressId, AuthUtils.getCurrentUserId());
+        return ResponseEntity.ok(ApiResponse.success(address));
+    }
+
     @PostMapping
     @Operation(summary = "添加地址")
     @Transactional
